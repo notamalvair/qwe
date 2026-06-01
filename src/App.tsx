@@ -132,6 +132,23 @@ function extractModel(name: string): string {
   return m.trim().replace(/\s+/g, ' ');
 }
 
+function getCategoryIcon(id: string) {
+  switch (id) {
+    case 'all': return <LayoutGrid className="w-5 h-5" />;
+    case 'iPhone': return <Smartphone className="w-5 h-5" />;
+    case 'Mac': return <Laptop className="w-5 h-5" />;
+    case 'iPad': return <Tablet className="w-5 h-5" />;
+    case 'Watch': return <Watch className="w-5 h-5" />;
+    case 'Audio': return <Headphones className="w-5 h-5" />;
+    case 'Gaming': return <Gamepad className="w-5 h-5" />;
+    case 'Samsung': return <Smartphone className="w-5 h-5 rotate-[12deg]" />;
+    case 'Xiaomi': return <Smartphone className="w-5 h-5" />;
+    case 'Home': return <Zap className="w-5 h-5 text-amber-500" />;
+    case 'Accessory': return <Layers className="w-5 h-5" />;
+    default: return <Info className="w-5 h-5" />;
+  }
+}
+
 const API_BASE = ((import.meta as any).env?.VITE_WP_API_URL || '').replace(/\/$/, '');
 
 export default function App() {
@@ -784,23 +801,23 @@ export default function App() {
       </div>
 
       {/* Double-row Header precisely mimicking i-shop.ru */}
-      <div className="bg-[#F8FAFB] text-[#6A737F] text-[12px] select-none border-b border-[#EDEEF0] h-10 flex items-center">
+      <div className="bg-[#F8FAFB] text-[#6A737F] text-[11px] select-none border-b border-[#EDEEF0] h-[36px] flex items-center">
         <div className="max-w-[1320px] mx-auto px-6 w-full flex items-center justify-between">
           <div className="flex items-center gap-6">
-            <span className="flex items-center gap-1.5 hover:text-[#333333] transition-colors cursor-pointer font-medium">
-              <MapPin className="w-3.5 h-3.5 text-[#6A737F]" /> Москва
+            <span className="flex items-center gap-1.5 hover:text-[#333333] transition-colors cursor-pointer text-[#6A737F]">
+              <MapPin className="w-3 h-3 text-[#6A737F]" /> Москва
             </span>
-            <span className="hidden md:inline hover:text-[#333333] transition-colors cursor-pointer font-medium">Доставка</span>
-            <span className="hidden md:inline hover:text-[#333333] transition-colors cursor-pointer font-medium">Сервис</span>
-            <span className="hidden md:inline hover:text-[#333333] transition-colors cursor-pointer font-medium">Trade-in</span>
+            <span className="hidden md:inline hover:text-[#333333] transition-colors cursor-pointer text-[#6A737F]">Доставка</span>
+            <span className="hidden md:inline hover:text-[#333333] transition-colors cursor-pointer text-[#6A737F]">Сервис</span>
+            <span className="hidden md:inline hover:text-[#333333] transition-colors cursor-pointer text-[#6A737F]">Trade-in</span>
           </div>
           <div className="flex items-center gap-6">
-            <a href={`tel:${shopOptions.phone}`} className="hover:text-[#333333] transition-colors flex items-center gap-1.5 font-semibold text-[#333333]">
-              <Phone className="w-3.5 h-3.5 text-[#6A737F]" /> {shopOptions.phone}
+            <a href={`tel:${shopOptions.phone}`} className="hover:text-[#2066B0] transition-colors flex items-center gap-1.5 font-bold text-[#333333]">
+              <Phone className="w-3 h-3 text-[#6A737F]" /> {shopOptions.phone}
             </a>
             <button 
               onClick={() => setAdminMode(!adminMode)}
-              className={`flex items-center gap-1 px-2.5 py-0.5 rounded-[4px] font-semibold transition-all ${
+              className={`flex items-center gap-1 px-2 py-0.5 rounded-[2px] font-semibold transition-all cursor-pointer ${
                 adminMode 
                   ? 'bg-amber-500 text-gray-950 shadow-xs' 
                   : 'bg-white border border-[#EDEEF0] text-[#333333] hover:bg-gray-100'
@@ -814,7 +831,7 @@ export default function App() {
 
       {/* Main Header Row Sticky */}
       <header className="sticky top-0 z-40 bg-white border-b border-[#EDEEF0] transition-all">
-        <div className="max-w-[1320px] mx-auto px-6 h-[50px] flex items-center gap-6 justify-between">
+        <div className="max-w-[1320px] mx-auto px-6 h-[48px] flex items-center gap-6 justify-between">
           
           {/* Mobile hamburger & Logo left side */}
           <div className="flex items-center gap-4">
@@ -832,15 +849,15 @@ export default function App() {
                 setSearchQuery('');
                 setSelectedSubcat(null);
               }}
-              className="flex items-center gap-1 cursor-pointer hover:opacity-90"
+              className="flex items-center gap-1.5 cursor-pointer hover:opacity-90 align-middle"
             >
-              <span className="text-[22px] font-extrabold tracking-tight text-black font-display">I:Bro</span>
-              <span className="text-[10px] uppercase tracking-widest bg-black text-white px-1 py-0.5 rounded-[2px] font-bold leading-none hidden sm:inline-block">iShop</span>
+              <span className="text-[20px] font-bold tracking-tight text-black font-display leading-none">I:Bro</span>
+              <span className="text-[8px] tracking-wide bg-black text-white px-1 py-0.5 rounded-[2px] font-bold leading-none">iShop</span>
             </button>
           </div>
 
           {/* Sticky Desktop Categories Navigation - Styled precisely like catalog of i-shop.ru */}
-          <nav className="hidden lg:flex items-center gap-6 text-[13px] font-semibold text-[#333333]">
+          <nav className="hidden lg:flex items-center gap-6 text-[12px] font-semibold text-[#333333] h-full">
             {CATEGORIES.slice(1, 7).map(cat => {
               const isSelected = selectedCategory.toLowerCase() === cat.id.toLowerCase();
               return (
@@ -850,8 +867,8 @@ export default function App() {
                     handleSelectCategory(cat.id);
                     setSelectedSubcat(null);
                   }}
-                  className={`py-1.5 hover:text-[#2066B0] transition-colors relative ${
-                    isSelected ? 'text-[#2066B0] border-b-2 border-[#2066B0] font-bold' : ''
+                  className={`h-full flex items-center hover:text-[#2066B0] transition-colors relative border-b-2 cursor-pointer ${
+                    isSelected ? 'text-[#2066B0] border-[#2066B0] font-semibold' : 'border-transparent text-[#333333]'
                   }`}
                 >
                   {cat.name}
@@ -865,7 +882,7 @@ export default function App() {
                 setOnlyDiscount(true);
                 setSelectedSubcat(null);
               }}
-              className="text-[#F0371B] hover:text-[#c42812] transition-colors flex items-center gap-1 font-semibold"
+              className="h-full flex items-center text-[#F0371B] hover:text-[#c42812] transition-colors gap-1 font-semibold cursor-pointer"
             >
               <span className="w-1.5 h-1.5 bg-[#F0371B] rounded-full inline-block animate-pulse"></span> Скидки
             </button>
@@ -884,7 +901,7 @@ export default function App() {
                   setSearchQuery(e.target.value);
                   setSelectedSubcat(null); // Clear subcategory on typing
                 }}
-                className="w-52 lg:w-64 pl-8 pr-8 py-1.5 bg-[#F8FAFB] border border-[#EDEEF0] rounded-[4px] text-xs focus:outline-none focus:bg-white focus:border-black transition-all text-[#333333] placeholder-[#828B95]"
+                className="w-52 lg:w-64 pl-8 pr-8 py-1.5 bg-[#F8FAFB] border border-[#EDEEF0] rounded-[2px] text-[12px] focus:outline-none focus:bg-white focus:border-black transition-all text-[#333333] placeholder-[#828B95]"
               />
               <Search className="w-3.5 h-3.5 text-[#6A737F] absolute left-2.5 top-2.5" />
               {searchQuery && (
@@ -909,9 +926,9 @@ export default function App() {
               className="text-[#333333] hover:text-[#F0371B] transition-colors relative p-1 cursor-pointer"
               title="Избранное"
             >
-              <Heart className={`w-[20px] h-[20px] ${favorites.length > 0 ? 'fill-[#F0371B] text-[#F0371B]' : ''}`} />
+              <Heart className={`w-[18px] h-[18px] ${favorites.length > 0 ? 'fill-[#F0371B] text-[#F0371B]' : 'text-[#333333]'}`} />
               {favorites.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-[#F0371B] text-white text-[9px] w-[16px] h-[16px] rounded-full flex items-center justify-center font-bold tracking-tight">
+                <span className="absolute -top-1 -right-1 bg-[#000000] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold tracking-tight">
                   {favorites.length}
                 </span>
               )}
@@ -923,9 +940,9 @@ export default function App() {
               className="text-[#333333] hover:text-black transition-colors relative p-1 cursor-pointer"
               title="Корзина покупок"
             >
-              <ShoppingBag className="w-[20px] h-[20px]" />
+              <ShoppingBag className="w-[18px] h-[18px]" />
               {cart.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-[#000000] text-white text-[9px] w-[16px] h-[16px] rounded-full flex items-center justify-center font-bold tracking-tight">
+                <span className="absolute -top-1 -right-1 bg-[#000000] text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-bold tracking-tight">
                   {cart.reduce((sum, item) => sum + item.count, 0)}
                 </span>
               )}
@@ -934,6 +951,40 @@ export default function App() {
           </div>
         </div>
       </header>
+
+      {/* 3. i-shop.ru Category Strip (под шапкой) */}
+      <div className="bg-white border-b border-[#EDEEF0] py-3 select-none">
+        <div className="max-w-[1320px] mx-auto px-6">
+          <div className="flex items-center gap-6 overflow-x-auto pb-1 scrollbar-none scroll-smooth">
+            {CATEGORIES.map(cat => {
+              const isActive = selectedCategory.toLowerCase() === cat.id.toLowerCase();
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => {
+                    handleSelectCategory(cat.id);
+                    setSelectedSubcat(null);
+                  }}
+                  className={`flex flex-col items-center justify-center gap-1.5 min-w-[70px] cursor-pointer transition-all ${
+                    isActive 
+                      ? 'text-black font-semibold' 
+                      : 'text-[#6A737F] hover:text-[#333333] font-medium'
+                  }`}
+                >
+                  <div className={`p-1.5 rounded-full transition-colors ${
+                    isActive ? 'bg-[#F2F4F5] text-black' : 'text-[#6A737F]'
+                  }`}>
+                    {getCategoryIcon(cat.id)}
+                  </div>
+                  <span className="text-[11px] whitespace-nowrap leading-none font-sans">
+                    {cat.name}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
 
       {/* ADMIN INTERACTIVE CONTROL PANEL VIEW */}
       <AnimatePresence>
@@ -1416,7 +1467,7 @@ export default function App() {
             })}
           </div>
 
-          {/* i-shop.ru Subcategories (Models horizontal scroll): image (120x120) + small model name title */}
+          {/* i-shop.ru Subcategories (Models horizontal scroll): image (90x90) + small model name title */}
           {subcategoriesList.length > 0 && (
             <div className="relative mt-6 pt-5 border-t border-[#EDEEF0]">
               <div className="flex items-center justify-between mb-3 text-[11px] font-bold text-gray-400 uppercase tracking-wider">
@@ -1435,14 +1486,14 @@ export default function App() {
                 {/* Visual "All Models" block with outline wrapper */}
                 <div 
                   onClick={() => setSelectedSubcat(null)}
-                  className={`flex-shrink-0 w-[140px] p-2 bg-white border rounded-[4px] flex flex-col items-center justify-between text-center cursor-pointer select-none transition-all hover:border-black ${
-                    !selectedSubcat ? 'border-black ring-1 ring-black' : 'border-[#EDEEF0]'
+                  className={`flex-shrink-0 w-[110px] p-2 bg-white border rounded-[6px] transition-all cursor-pointer select-none text-center ${
+                    !selectedSubcat ? 'border-black' : 'border-[#EDEEF0] hover:border-black'
                   }`}
                 >
-                  <div className="w-[120px] h-[120px] flex items-center justify-center bg-[#F8FAFB] rounded-[2px]">
-                    <Layers className="w-8 h-8 text-[#6A737F]" />
+                  <div className="w-[90px] h-[90px] mx-auto flex items-center justify-center bg-[#F8FAFB] rounded-[6px]">
+                    <Layers className="w-6 h-6 text-[#6A737F]" />
                   </div>
-                  <div className="text-[12px] font-medium text-[#333333] mt-2 line-clamp-1">
+                  <div className="text-[10px] font-medium text-[#333333] mt-2 leading-tight min-h-[2.4em] flex items-center justify-center">
                     Все модели
                   </div>
                 </div>
@@ -1454,19 +1505,19 @@ export default function App() {
                     <div 
                       key={sub.name}
                       onClick={() => setSelectedSubcat(sub.name)}
-                      className={`flex-shrink-0 w-[140px] p-2 bg-white border rounded-[4px] flex flex-col items-center justify-between text-center cursor-pointer select-none transition-all hover:border-black ${
-                        isSubActive ? 'border-black ring-1 ring-black shadow-xs' : 'border-[#EDEEF0]'
+                      className={`flex-shrink-0 w-[110px] p-2 bg-white border rounded-[6px] transition-all cursor-pointer select-none text-[#333333] text-center ${
+                        isSubActive ? 'border-black' : 'border-[#EDEEF0] hover:border-black'
                       }`}
                     >
-                      <div className="w-[120px] h-[120px] flex items-center justify-center bg-white overflow-hidden p-2">
+                      <div className="w-[90px] h-[90px] mx-auto flex items-center justify-center bg-[#F8FAFB] rounded-[6px] overflow-hidden p-1.5">
                         <img 
                           src={sub.image} 
                           alt={sub.name} 
-                          className="max-w-full max-h-full object-contain transition-transform duration-300 group-hover:scale-105"
+                          className="max-w-full max-h-full object-contain transition-transform duration-300 hover:scale-[1.03]"
                           onError={handleImageError}
                         />
                       </div>
-                      <div className="text-[12px] font-medium text-[#333333] mt-2 leading-tight line-clamp-2 min-h-[2.4em]">
+                      <div className="text-[10px] font-medium text-[#333333] mt-2 leading-tight line-clamp-2 min-h-[2.4em] px-0.5">
                         {sub.name}
                       </div>
                     </div>
@@ -1485,7 +1536,7 @@ export default function App() {
           
           {/* LEFT-SIDE FILTER SIDEBAR - i-shop.ru style */}
           <aside className="w-full lg:w-68 flex-shrink-0">
-            <div className="sticky top-24 bg-white rounded-[4px] border border-[#EDEEF0] p-5 select-none space-y-5">
+            <div className="sticky top-24 bg-white rounded-[2px] border border-[#EDEEF0] p-5 select-none space-y-5">
               
               <div className="flex items-center justify-between pb-2 border-b border-[#EDEEF0]">
                 <h3 className="font-bold text-[#333333] text-[13px] uppercase tracking-wider flex items-center gap-1.5">
@@ -1493,7 +1544,7 @@ export default function App() {
                 </h3>
                 <button 
                   onClick={resetFilters}
-                  className="text-[12px] font-semibold text-[#2066B0] hover:underline cursor-pointer"
+                  className="text-[11px] font-semibold text-[#2066B0] hover:underline cursor-pointer"
                 >
                   Сбросить
                 </button>
@@ -1508,14 +1559,14 @@ export default function App() {
                     placeholder="от" 
                     value={priceMin}
                     onChange={e => setPriceMin(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="w-1/2 px-2.5 py-1.5 bg-[#F8FAFB] border border-[#EDEEF0] rounded-[4px] text-[12px] font-medium focus:outline-none focus:border-black text-[#333333]"
+                    className="w-1/2 px-2.5 py-1.5 bg-[#F8FAFB] border border-[#EDEEF0] rounded-[2px] text-[12px] font-medium focus:outline-none focus:border-black text-[#333333]"
                   />
                   <input 
                     type="number" 
                     placeholder="до" 
                     value={priceMax}
                     onChange={e => setPriceMax(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="w-1/2 px-2.5 py-1.5 bg-[#F8FAFB] border border-[#EDEEF0] rounded-[4px] text-[12px] font-medium focus:outline-none focus:border-black text-[#333333]"
+                    className="w-1/2 px-2.5 py-1.5 bg-[#F8FAFB] border border-[#EDEEF0] rounded-[2px] text-[12px] font-medium focus:outline-none focus:border-black text-[#333333]"
                   />
                 </div>
                 
@@ -1591,10 +1642,10 @@ export default function App() {
                                 : [...prev, color]
                             );
                           }}
-                          className={`w-7 h-7 rounded-full transition-all relative flex-shrink-0 cursor-pointer ${
+                          className={`w-6 h-6 rounded-full transition-all relative flex-shrink-0 cursor-pointer ${
                             isSelected 
-                              ? 'ring-2 ring-black ring-offset-2 scale-105' 
-                              : isLight ? 'border border-[#C5CACF]' : 'border border-transparent'
+                              ? 'ring-2 ring-black ring-offset-1 scale-105' 
+                              : isLight ? 'border border-[#DDDDDD]' : 'border border-transparent'
                           }`}
                           style={{ backgroundColor: hexValue }}
                           title={friendlyName}
@@ -1622,9 +1673,9 @@ export default function App() {
                                 : [...prev, size]
                             );
                           }}
-                          className={`px-3 py-1.5 text-[12px] font-medium border rounded-[4px] transition-all cursor-pointer ${
+                          className={`px-2.5 py-1 text-[11px] font-semibold border rounded-[2px] transition-all cursor-pointer ${
                             isSelected
-                              ? 'bg-[#333333] text-white border-transparent'
+                              ? 'bg-[#333333] text-white border-[#333333]'
                               : 'bg-white text-[#333333] border-[#EDEEF0] hover:border-black'
                           }`}
                         >
@@ -1665,6 +1716,16 @@ export default function App() {
                     <span className="text-[12px] font-medium text-[#333333]">Показать новинки</span>
                   </div>
                 </div>
+              </div>
+
+              {/* Apply Button */}
+              <div className="pt-4 border-t border-[#EDEEF0]">
+                <button 
+                  onClick={() => triggerToast('Фильтры успешно применены', 'success')}
+                  className="w-full bg-[#000000] text-white py-2.5 px-4 rounded-[2px] text-[12px] font-bold hover:bg-[#333333] transition-colors cursor-pointer capitalize"
+                >
+                  Применить
+                </button>
               </div>
 
             </div>
