@@ -7,7 +7,7 @@ import {
   Settings, Plus, Trash2, Edit, Save, RefreshCw, FileSpreadsheet, 
   Info, CheckCircle, Clock, ArrowRight, ShieldCheck, Truck, 
   RotateCcw, Award, CheckSquare, Square, ShoppingBag, Eye, Phone,
-  Mail, MapPin, ExternalLink, Calendar, Zap
+  Mail, MapPin, ExternalLink, Calendar, Zap, ChevronDown, ChevronUp
 } from 'lucide-react';
 import ProductCard from './components/ProductCard';
 
@@ -104,6 +104,7 @@ const CATEGORIES = [
   { id: 'Gaming', name: 'Gaming' },
   { id: 'Samsung', name: 'Samsung' },
   { id: 'Xiaomi', name: 'Xiaomi' },
+  { id: 'Nothing', name: 'Nothing' },
   { id: 'Home', name: 'Dyson & Home' },
   { id: 'Accessory', name: 'Аксессуары' },
   { id: 'Other', name: 'Другое' }
@@ -143,6 +144,7 @@ function getCategoryIcon(id: string) {
     case 'Gaming': return <Gamepad className="w-5 h-5" />;
     case 'Samsung': return <Smartphone className="w-5 h-5 rotate-[12deg]" />;
     case 'Xiaomi': return <Smartphone className="w-5 h-5" />;
+    case 'Nothing': return <Smartphone className="w-5 h-5" />;
     case 'Home': return <Zap className="w-5 h-5 text-amber-500" />;
     case 'Accessory': return <Layers className="w-5 h-5" />;
     default: return <Info className="w-5 h-5" />;
@@ -206,6 +208,12 @@ export default function App() {
   const [onlyNewest, setOnlyNewest] = useState(false);
   const [sortOrder, setSortOrder] = useState('popular');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+
+  // Filter Accordion State
+  const [priceOpen, setPriceOpen] = useState(true);
+  const [colorsOpen, setColorsOpen] = useState(true);
+  const [storageOpen, setStorageOpen] = useState(true);
+  const [additionalOpen, setAdditionalOpen] = useState(true);
 
   // UI Control States
   const [cartOpen, setCartOpen] = useState(false);
@@ -1536,9 +1544,9 @@ export default function App() {
           
           {/* LEFT-SIDE FILTER SIDEBAR - i-shop.ru style */}
           <aside className="w-full lg:w-68 flex-shrink-0">
-            <div className="sticky top-24 bg-white rounded-[2px] border border-[#EDEEF0] p-5 select-none space-y-5">
+            <div className="sticky top-24 bg-white rounded-[2px] border border-[#EDEEF0] p-5 select-none divide-y divide-[#EDEEF0] space-y-3">
               
-              <div className="flex items-center justify-between pb-2 border-b border-[#EDEEF0]">
+              <div className="flex items-center justify-between pb-2">
                 <h3 className="font-bold text-[#333333] text-[13px] uppercase tracking-wider flex items-center gap-1.5">
                   <SlidersHorizontal className="w-4 h-4 text-[#828B95]" /> Фильтры
                 </h3>
@@ -1551,181 +1559,274 @@ export default function App() {
               </div>
 
               {/* Price accordion */}
-              <div className="space-y-3">
-                <h4 className="text-[12px] font-bold text-[#333333]">Цена, ₽</h4>
-                <div className="flex gap-2">
-                  <input 
-                    type="number" 
-                    placeholder="от" 
-                    value={priceMin}
-                    onChange={e => setPriceMin(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="w-1/2 px-2.5 py-1.5 bg-[#F8FAFB] border border-[#EDEEF0] rounded-[2px] text-[12px] font-medium focus:outline-none focus:border-black text-[#333333]"
-                  />
-                  <input 
-                    type="number" 
-                    placeholder="до" 
-                    value={priceMax}
-                    onChange={e => setPriceMax(e.target.value === '' ? '' : Number(e.target.value))}
-                    className="w-1/2 px-2.5 py-1.5 bg-[#F8FAFB] border border-[#EDEEF0] rounded-[2px] text-[12px] font-medium focus:outline-none focus:border-black text-[#333333]"
-                  />
+              <div className="pt-3">
+                <div 
+                  onClick={() => setPriceOpen(!priceOpen)}
+                  className="flex items-center justify-between cursor-pointer group py-1.5"
+                >
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[12px] font-bold text-[#333333] uppercase tracking-wider text-[11px] transition-colors group-hover:text-black">Цена, ₽</span>
+                    {(priceMin !== '' || priceMax !== '') && (
+                      <span className="bg-[#F2F4F5] text-black text-[10px] font-semibold px-1.5 py-0.5 rounded-full">
+                        {priceMin !== '' && priceMax !== '' ? '2' : '1'}
+                      </span>
+                    )}
+                  </div>
+                  {priceOpen ? <ChevronUp className="w-3.5 h-3.5 text-[#828B95]" /> : <ChevronDown className="w-3.5 h-3.5 text-[#828B95]" />}
                 </div>
-                
-                {/* Custom-styled Range Slider as requested */}
-                <input 
-                  type="range" 
-                  min="5000" 
-                  max="400000" 
-                  step="5000"
-                  value={priceMax || priceRange} 
-                  onChange={e => {
-                    const val = Number(e.target.value);
-                    setPriceRange(val);
-                    setPriceMax(val);
-                  }}
-                  className="w-full h-[4px] bg-[#EDEEF0] rounded-lg appearance-none cursor-pointer accent-black focus:outline-none mt-2
-                             [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-black [&::-webkit-slider-thumb]:cursor-pointer
-                             [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-black [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:cursor-pointer"
-                />
-                
-                <div className="flex justify-between text-[11px] font-semibold text-gray-400">
-                  <span>от 5 000 ₽</span>
-                  <span>до {(priceMax || priceRange).toLocaleString('ru-RU')} ₽</span>
-                </div>
+
+                <AnimatePresence initial={false}>
+                  {priceOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1, marginTop: 10 }}
+                      exit={{ height: 0, opacity: 0, marginTop: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden space-y-3"
+                    >
+                      <div className="flex gap-2">
+                        <input 
+                          type="number" 
+                          placeholder="от" 
+                          value={priceMin}
+                          onChange={e => setPriceMin(e.target.value === '' ? '' : Number(e.target.value))}
+                          className="w-1/2 px-2.5 py-1.5 bg-[#F8FAFB] border border-[#EDEEF0] rounded-[2px] text-[12px] font-medium focus:outline-none focus:border-black text-[#333333]"
+                        />
+                        <input 
+                          type="number" 
+                          placeholder="до" 
+                          value={priceMax}
+                          onChange={e => setPriceMax(e.target.value === '' ? '' : Number(e.target.value))}
+                          className="w-1/2 px-2.5 py-1.5 bg-[#F8FAFB] border border-[#EDEEF0] rounded-[2px] text-[12px] font-medium focus:outline-none focus:border-black text-[#333333]"
+                        />
+                      </div>
+                      
+                      {/* Custom-styled Range Slider */}
+                      <input 
+                        type="range" 
+                        min="5000" 
+                        max="400000" 
+                        step="5000"
+                        value={priceMax || priceRange} 
+                        onChange={e => {
+                          const val = Number(e.target.value);
+                          setPriceRange(val);
+                          setPriceMax(val);
+                        }}
+                        className="w-full h-[4px] bg-[#EDEEF0] rounded-lg appearance-none cursor-pointer accent-black focus:outline-none mt-2
+                                   [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-black [&::-webkit-slider-thumb]:cursor-pointer
+                                   [&::-moz-range-thumb]:w-4 [&::-moz-range-thumb]:h-4 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:bg-black [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:cursor-pointer"
+                      />
+                      
+                      <div className="flex justify-between text-[11px] font-semibold text-gray-400">
+                        <span>от 5 000 ₽</span>
+                        <span>до {(priceMax || priceRange).toLocaleString('ru-RU')} ₽</span>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
               {/* COLORS SELECTOR COMPONENT */}
               {activeCategoryColors.length > 0 && (
-                <div className="space-y-3 pt-4 border-t border-[#EDEEF0]">
-                  <h4 className="text-[12px] font-bold text-[#333333]">Цвета</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {activeCategoryColors.map(color => {
-                      const isSelected = selectedColors.includes(color);
-                      
-                      const getColorHex = (name: string): string => {
-                        const norm = name.toLowerCase().trim();
-                        if (norm.includes('desert')) return '#C2B29A';
-                        if (norm.includes('natural')) return '#A6A9AA';
-                        if (norm.includes('white titanium')) return '#F3F2EE';
-                        if (norm.includes('black titanium')) return '#3B3C3E';
-                        if (norm.includes('titanium')) return '#A6A9AA';
-                        if (norm.includes('midnight')) return '#1D232C';
-                        if (norm.includes('starlight')) return '#F0EFEA';
-                        if (norm.includes('space gray') || norm.includes('space grey')) return '#53565A';
-                        if (norm.includes('space black')) return '#1C1C1E';
-                        if (norm.includes('silver')) return '#E3E4E5';
-                        if (norm.includes('gold')) return '#F5E3D2';
-                        if (norm.includes('jet black')) return '#050505';
-                        if (norm.includes('rose gold')) return '#B76E79';
-                        if (norm.includes('black')) return '#000000';
-                        if (norm.includes('white')) return '#FFFFFF';
-                        if (norm.includes('teal')) return '#307E84';
-                        if (norm.includes('pink')) return '#F2D1CE';
-                        if (norm.includes('ultramarine')) return '#5C74B5';
-                        if (norm.includes('green')) return '#A2E0CA';
-                        if (norm.includes('blue')) return '#C5E0F3';
-                        if (norm.includes('yellow')) return '#FEF0B2';
-                        if (norm.includes('purple')) return '#D9D2E9';
-                        return '#CCCCCC';
-                      };
-
-                      const hexValue = getColorHex(color);
-                      const isLight = ['white', 'starlight', 'silver', 'white titanium'].some(w => color.toLowerCase().includes(w));
-                      const friendlyName = color.charAt(0).toUpperCase() + color.slice(1);
-
-                      return (
-                        <button
-                          key={color}
-                          onClick={() => {
-                            setSelectedColors(prev => 
-                              prev.includes(color) 
-                                ? prev.filter(c => c !== color) 
-                                : [...prev, color]
-                            );
-                          }}
-                          className={`w-6 h-6 rounded-full transition-all relative flex-shrink-0 cursor-pointer ${
-                            isSelected 
-                              ? 'ring-2 ring-black ring-offset-1 scale-105' 
-                              : isLight ? 'border border-[#DDDDDD]' : 'border border-transparent'
-                          }`}
-                          style={{ backgroundColor: hexValue }}
-                          title={friendlyName}
-                        />
-                      );
-                    })}
+                <div className="pt-3">
+                  <div 
+                    onClick={() => setColorsOpen(!colorsOpen)}
+                    className="flex items-center justify-between cursor-pointer group py-1.5"
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[12px] font-bold text-[#333333] uppercase tracking-wider text-[11px] transition-colors group-hover:text-black">Цвета</span>
+                      {selectedColors.length > 0 && (
+                        <span className="bg-[#F2F4F5] text-black text-[10px] font-semibold px-1.5 py-0.5 rounded-full">
+                          {selectedColors.length}
+                        </span>
+                      )}
+                    </div>
+                    {colorsOpen ? <ChevronUp className="w-3.5 h-3.5 text-[#828B95]" /> : <ChevronDown className="w-3.5 h-3.5 text-[#828B95]" />}
                   </div>
+
+                  <AnimatePresence initial={false}>
+                    {colorsOpen && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1, marginTop: 10 }}
+                        exit={{ height: 0, opacity: 0, marginTop: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="flex flex-wrap gap-2 pt-1">
+                          {activeCategoryColors.map(color => {
+                            const isSelected = selectedColors.includes(color);
+                            
+                            const getColorHex = (name: string): string => {
+                              const norm = name.toLowerCase().trim();
+                              if (norm.includes('desert')) return '#C2B29A';
+                              if (norm.includes('natural')) return '#A6A9AA';
+                              if (norm.includes('white titanium')) return '#F3F2EE';
+                              if (norm.includes('black titanium')) return '#3B3C3E';
+                              if (norm.includes('titanium')) return '#A6A9AA';
+                              if (norm.includes('midnight')) return '#1D232C';
+                              if (norm.includes('starlight')) return '#F0EFEA';
+                              if (norm.includes('space gray') || norm.includes('space grey')) return '#53565A';
+                              if (norm.includes('space black')) return '#1C1C1E';
+                              if (norm.includes('silver')) return '#E3E4E5';
+                              if (norm.includes('gold')) return '#F5E3D2';
+                              if (norm.includes('jet black')) return '#050505';
+                              if (norm.includes('rose gold')) return '#B76E79';
+                              if (norm.includes('black')) return '#000000';
+                              if (norm.includes('white')) return '#FFFFFF';
+                              if (norm.includes('teal')) return '#307E84';
+                              if (norm.includes('pink')) return '#F2D1CE';
+                              if (norm.includes('ultramarine')) return '#5C74B5';
+                              if (norm.includes('green')) return '#A2E0CA';
+                              if (norm.includes('blue')) return '#C5E0F3';
+                              if (norm.includes('yellow')) return '#FEF0B2';
+                              if (norm.includes('purple')) return '#D9D2E9';
+                              return '#CCCCCC';
+                            };
+
+                            const hexValue = getColorHex(color);
+                            const isLight = ['white', 'starlight', 'silver', 'white titanium'].some(w => color.toLowerCase().includes(w));
+                            const friendlyName = color.charAt(0).toUpperCase() + color.slice(1);
+
+                            return (
+                              <button
+                                key={color}
+                                onClick={() => {
+                                  setSelectedColors(prev => 
+                                    prev.includes(color) 
+                                      ? prev.filter(c => c !== color) 
+                                      : [...prev, color]
+                                  );
+                                }}
+                                className={`w-6 h-6 rounded-full transition-all relative flex-shrink-0 cursor-pointer ${
+                                  isSelected 
+                                    ? 'ring-2 ring-black ring-offset-1 scale-105' 
+                                    : isLight ? 'border border-[#DDDDDD]' : 'border border-transparent'
+                                }`}
+                                style={{ backgroundColor: hexValue }}
+                                title={friendlyName}
+                              />
+                            );
+                          })}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               )}
 
               {/* STORAGE COMPONENT CHIPS */}
               {activeCategoryStorages.length > 0 && (
-                <div className="space-y-3 pt-4 border-t border-[#EDEEF0]">
-                  <h4 className="text-[12px] font-bold text-[#333333]">Объем памяти</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {activeCategoryStorages.map(size => {
-                      const isSelected = selectedStorage.includes(size);
-                      return (
-                        <button
-                          key={size}
-                          onClick={() => {
-                            setSelectedStorage(prev => 
-                              prev.includes(size) 
-                                ? prev.filter(s => s !== size) 
-                                : [...prev, size]
-                            );
-                          }}
-                          className={`px-2.5 py-1 text-[11px] font-semibold border rounded-[2px] transition-all cursor-pointer ${
-                            isSelected
-                              ? 'bg-[#333333] text-white border-[#333333]'
-                              : 'bg-white text-[#333333] border-[#EDEEF0] hover:border-black'
-                          }`}
-                        >
-                          {size >= 1000 ? `${size/1000} TB` : `${size} GB`}
-                        </button>
-                      );
-                    })}
+                <div className="pt-3">
+                  <div 
+                    onClick={() => setStorageOpen(!storageOpen)}
+                    className="flex items-center justify-between cursor-pointer group py-1.5"
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[12px] font-bold text-[#333333] uppercase tracking-wider text-[11px] transition-colors group-hover:text-black">Объем памяти</span>
+                      {selectedStorage.length > 0 && (
+                        <span className="bg-[#F2F4F5] text-black text-[10px] font-semibold px-1.5 py-0.5 rounded-full">
+                          {selectedStorage.length}
+                        </span>
+                      )}
+                    </div>
+                    {storageOpen ? <ChevronUp className="w-3.5 h-3.5 text-[#828B95]" /> : <ChevronDown className="w-3.5 h-3.5 text-[#828B95]" />}
                   </div>
+
+                  <AnimatePresence initial={false}>
+                    {storageOpen && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1, marginTop: 10 }}
+                        exit={{ height: 0, opacity: 0, marginTop: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="flex flex-wrap gap-2 pt-1">
+                          {activeCategoryStorages.map(size => {
+                            const isSelected = selectedStorage.includes(size);
+                            return (
+                              <button
+                                key={size}
+                                onClick={() => {
+                                  setSelectedStorage(prev => 
+                                    prev.includes(size) 
+                                      ? prev.filter(s => s !== size) 
+                                      : [...prev, size]
+                                  );
+                                }}
+                                className={`px-2.5 py-1 text-[11px] font-semibold border rounded-[2px] transition-all cursor-pointer ${
+                                  isSelected
+                                    ? 'bg-[#333333] text-white border-[#333333]'
+                                    : 'bg-white text-[#333333] border-[#EDEEF0] hover:border-black'
+                                }`}
+                              >
+                                {size >= 1000 ? `${size/1000} TB` : `${size} GB`}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               )}
 
-              {/* TYPE AND STATUS ACCORDIONS */}
-              <div className="space-y-3 pt-4 border-t border-[#EDEEF0]">
-                <h4 className="text-[12px] font-bold text-[#333333]">Выбор группы</h4>
-                <div className="space-y-2.5">
-                  {/* Custom check box alignment */}
-                  <div 
-                    onClick={() => setOnlyDiscount(!onlyDiscount)}
-                    className="flex items-center gap-2 cursor-pointer select-none group"
-                  >
-                    <div className={`w-4 h-4 rounded-[4px] border flex items-center justify-center transition-all ${
-                      onlyDiscount ? 'bg-black border-black text-white' : 'border-[#C5CACF] bg-[#F8FAFB] group-hover:border-black'
-                    }`}>
-                      {onlyDiscount && <Check className="w-3 h-3 stroke-[3]" />}
-                    </div>
-                    <span className="text-[12px] font-medium text-[#333333]">Только со скидкой</span>
-                  </div>
-
-                  <div 
-                    onClick={() => setOnlyNewest(!onlyNewest)}
-                    className="flex items-center gap-2 cursor-pointer select-none group"
-                  >
-                    <div className={`w-4 h-4 rounded-[4px] border flex items-center justify-center transition-all ${
-                      onlyNewest ? 'bg-black border-black text-white' : 'border-[#C5CACF] bg-[#F8FAFB] group-hover:border-black'
-                    }`}>
-                      {onlyNewest && <Check className="w-3 h-3 stroke-[3]" />}
-                    </div>
-                    <span className="text-[12px] font-medium text-[#333333]">Показать новинки</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Apply Button */}
-              <div className="pt-4 border-t border-[#EDEEF0]">
-                <button 
-                  onClick={() => triggerToast('Фильтры успешно применены', 'success')}
-                  className="w-full bg-[#000000] text-white py-2.5 px-4 rounded-[2px] text-[12px] font-bold hover:bg-[#333333] transition-colors cursor-pointer capitalize"
+              {/* ADDITIONAL STATUS ACCORDIONS */}
+              <div className="pt-3">
+                <div 
+                  onClick={() => setAdditionalOpen(!additionalOpen)}
+                  className="flex items-center justify-between cursor-pointer group py-1.5"
                 >
-                  Применить
-                </button>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[12px] font-bold text-[#333333] uppercase tracking-wider text-[11px] transition-colors group-hover:text-black">Дополнительно</span>
+                    {((onlyDiscount ? 1 : 0) + (onlyNewest ? 1 : 0)) > 0 && (
+                      <span className="bg-[#F2F4F5] text-black text-[10px] font-semibold px-1.5 py-0.5 rounded-full">
+                        {((onlyDiscount ? 1 : 0) + (onlyNewest ? 1 : 0))}
+                      </span>
+                    )}
+                  </div>
+                  {additionalOpen ? <ChevronUp className="w-3.5 h-3.5 text-[#828B95]" /> : <ChevronDown className="w-3.5 h-3.5 text-[#828B95]" />}
+                </div>
+
+                <AnimatePresence initial={false}>
+                  {additionalOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1, marginTop: 10 }}
+                      exit={{ height: 0, opacity: 0, marginTop: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden space-y-2.5 pt-1"
+                    >
+                      {/* Only discounts */}
+                      <div 
+                        onClick={() => setOnlyDiscount(!onlyDiscount)}
+                        className="flex items-center gap-2 cursor-pointer select-none group"
+                      >
+                        <div className={`w-4 h-4 rounded-[4px] border flex items-center justify-center transition-all ${
+                          onlyDiscount ? 'bg-black border-black text-white' : 'border-[#C5CACF] bg-[#F8FAFB] group-hover:border-black'
+                        }`}>
+                          {onlyDiscount && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                        </div>
+                        <span className="text-[12px] font-medium text-[#333333]">Только со скидкой</span>
+                      </div>
+
+                      {/* Only newest */}
+                      <div 
+                        onClick={() => setOnlyNewest(!onlyNewest)}
+                        className="flex items-center gap-2 cursor-pointer select-none group"
+                      >
+                        <div className={`w-4 h-4 rounded-[4px] border flex items-center justify-center transition-all ${
+                          onlyNewest ? 'bg-black border-black text-white' : 'border-[#C5CACF] bg-[#F8FAFB] group-hover:border-black'
+                        }`}>
+                          {onlyNewest && <Check className="w-2.5 h-2.5 stroke-[3]" />}
+                        </div>
+                        <span className="text-[12px] font-medium text-[#333333]">Показать новинки</span>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
             </div>
