@@ -1,0 +1,6 @@
+{
+  "name": "I:Bro Store",
+  "description": "Premium Apple store & tech catalog with high-fidelity filters, custom admin dashboard, smart recommendation engine, and order management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

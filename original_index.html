@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>I:Bro — Техника Apple</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/@fontsource/inter@5.0.18/index.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+                    colors: {
+                        brand: '#0071E3',
+                        dark: '#1D1D1F',
+                        muted: '#6E6E73',
+                        light: '#F5F5F7',
+                        border: '#D2D2D7',
+                        success: '#34C759',
+                        warning: '#FF9F0A',
+                        accent: '#FF3B30'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { box-sizing: border-box; }
+        body { -webkit-font-smoothing: antialiased; }
+        .drawer { transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1); }
+        .drawer.open { transform: translateX(0); }
+        .overlay { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .overlay.active { opacity: 1; pointer-events: auto; }
+        .modal { transform: scale(0.95); opacity: 0; pointer-events: none; transition: all 0.25s ease; }
+        .modal.active { transform: scale(1); opacity: 1; pointer-events: auto; }
+        .toast { transform: translateX(120%); transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .toast.show { transform: translateX(0); }
+        .card-hover { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .card-hover:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(0,0,0,0.08); }
+        .btn-active:active { transform: scale(0.97); }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 8px; }
+        .fade-up { animation: fadeUp 0.4s ease forwards; opacity: 0; transform: translateY(12px); }
+        @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+        @keyframes badgePop { 0% { transform: scale(1); } 50% { transform: scale(1.4); } 100% { transform: scale(1); } }
+        .badge-pop { animation: badgePop 0.35s ease; }
+        @keyframes shake { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-8deg); } 75% { transform: rotate(8deg); } }
+        .shake { animation: shake 0.4s ease; }
+        .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+        .filter-body { overflow: hidden; transition: max-height 0.25s ease, opacity 0.2s ease; }
+        .filter-body.collapsed { max-height: 0 !important; opacity: 0; padding-top: 0 !important; margin-top: 0 !important; }
+        .filter-toggle .fa-chevron-down { transition: transform 0.25s ease; }
+        .filter-toggle.active .fa-chevron-down { transform: rotate(180deg); }
+        .color-swatch { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: all 0.2s ease; position: relative; }
+        .color-swatch:hover { transform: scale(1.15); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+        .color-swatch.active { border-color: #0071E3; box-shadow: 0 0 0 2px white, 0 0 0 4px #0071E3; }
+        .color-swatch.white-swatch { border-color: #ddd; }
+        .color-swatch.white-swatch.active { border-color: #0071E3; box-shadow: 0 0 0 2px white, 0 0 0 4px #0071E3; }
+        .subcat-item { flex-shrink: 0; width: 120px; cursor: pointer; transition: all 0.2s ease; }
+        .subcat-wrap { position: relative; }
+        .subcat-scroll { display: flex; gap: 12px; overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; scroll-behavior: smooth; padding: 4px 0; }
+        .subcat-scroll::-webkit-scrollbar { display: none; }
+        .subcat-arrow { position: absolute; top: 50%; transform: translateY(-50%); z-index: 2; width: 32px; height: 32px; border-radius: 50%; background: white; border: 1px solid #e5e5ea; box-shadow: 0 2px 8px rgba(0,0,0,0.08); display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; transition: opacity 0.2s ease; }
+        .subcat-wrap:hover .subcat-arrow { opacity: 1; }
+        .subcat-arrow:hover { background: #f5f5f7; }
+        .subcat-arrow-left { left: -4px; }
+        .subcat-arrow-right { right: -4px; }
+        .subcat-item:hover { transform: translateY(-2px); }
+        .subcat-item.active .subcat-img { border-color: #0071E3; box-shadow: 0 4px 12px rgba(0,113,227,0.15); }
+        .subcat-item.active .subcat-name { color: #0071E3; font-weight: 600; }
+        .subcat-img { width: 120px; height: 120px; border-radius: 16px; border: 2px solid transparent; background: #f5f5f7; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; overflow: hidden; }
+        .subcat-img img { width: 80%; height: 80%; object-fit: contain; }
+        .subcat-name { font-size: 11px; text-align: center; margin-top: 4px; color: #6E6E73; font-weight: 500; line-height: 1.2; transition: color 0.2s ease; }
+        .pulse-dot { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        @keyframes cartPop { 0% { transform: scale(1); } 30% { transform: scale(1.2); } 60% { transform: scale(0.95); } 100% { transform: scale(1); } }
+        .animate-cart { animation: cartPop 0.5s ease; }
+        input[type="range"] { -webkit-appearance: none; appearance: none; height: 4px; border-radius: 2px; background: #E5E5EA; outline: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; background: #0071E3; border-radius: 50%; cursor: pointer; box-shadow: 0 1px 4px rgba(0,0,0,0.2); }
+        .filter-chip { transition: all 0.2s ease; }
+        .filter-chip.active { background: #0071E3; color: white; border-color: #0071E3; }
+        .checkbox-custom:checked { background: #0071E3; border-color: #0071E3; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-white text-dark">
+
+    <!-- Top Bar -->
+    <div class="bg-dark text-white text-xs">
+        <div class="container mx-auto px-4 h-8 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <a href="#" class="hover:text-gray-300 transition-colors hidden sm:inline">Москва</a>
+                <span class="text-gray-600 hidden sm:inline">|</span>
+                <a href="tel:88001000000" class="hover:text-gray-300 transition-colors">8 (800) 100-00-00</a>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="#" class="hover:text-gray-300 transition-colors hidden sm:inline">Trade-in</a>
+                <span class="text-gray-600 hidden sm:inline">|</span>
+                <a href="#" class="hover:text-gray-300 transition-colors hidden sm:inline">Рассрочка</a>
+                <span class="text-gray-600 hidden sm:inline">|</span>
+                <a href="#" class="hover:text-gray-300 transition-colors hidden sm:inline">Бизнесу</a>
+                <span class="text-gray-600 hidden sm:inline">|</span>
+                <a href="#" class="hover:text-gray-300 transition-colors">Мой I:Bro</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-gray-100">
+        <div class="container mx-auto px-4 h-14 flex items-center gap-4">
+            <button id="mobileMenuBtn" class="lg:hidden text-xl text-dark">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <a href="#" class="flex items-center gap-1.5 flex-shrink-0" data-action="reset">
+                <span class="text-2xl font-bold tracking-tight">I:Bro</span>
+                <i class="fa-brands fa-apple text-xl ml-0.5"></i>
+            </a>
+            <nav class="hidden lg:flex items-center gap-5 text-sm font-medium">
+                <a href="#" class="hover:text-brand transition-colors" data-nav="iPhone">iPhone</a>
+                <a href="#" class="hover:text-brand transition-colors" data-nav="Mac">Mac</a>
+                <a href="#" class="hover:text-brand transition-colors" data-nav="iPad">iPad</a>
+                <a href="#" class="hover:text-brand transition-colors" data-nav="Watch">Watch</a>
+                <a href="#" class="hover:text-brand transition-colors" data-nav="Audio">AirPods</a>
+                <a href="#" class="hover:text-brand transition-colors" data-nav="Accessory">Аксессуары</a>
+                <a href="#" class="text-accent hover:text-red-600 transition-colors flex items-center gap-1">
+                    <span class="pulse-dot w-1.5 h-1.5 bg-accent rounded-full inline-block"></span> Sale
+                </a>
+            </nav>
+            <div class="flex items-center gap-3 ml-auto">
+                <div class="relative hidden md:block">
+                    <input type="text" id="searchInput" placeholder="Поиск" class="w-48 lg:w-56 pl-9 pr-4 py-1.5 bg-light rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:bg-white transition-all">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-2 text-muted text-xs"></i>
+                </div>
+                <button class="text-xl hover:text-brand transition-colors relative" title="Избранное" data-action="favToast">
+                    <i class="fa-regular fa-heart"></i>
+                    <span id="favBadge" class="absolute -top-1 -right-1 bg-accent text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold opacity-0 transition-opacity">0</span>
+                </button>
+                <button id="cartBtn" class="text-xl hover:text-brand transition-colors relative" title="Корзина">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                    <span id="cartBadge" class="absolute -top-1.5 -right-2 bg-brand text-white text-[9px] w-4 h-4 rounded-full flex items-center justify-center font-bold opacity-0 transition-opacity">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobile Menu -->
+    <div id="mobileMenuOverlay" class="overlay fixed inset-0 bg-black/50 z-50"></div>
+    <div id="mobileMenu" class="fixed top-0 left-0 h-full w-[300px] bg-white z-50 -translate-x-full transition-transform duration-300 overflow-y-auto">
+        <div class="p-5 border-b border-gray-100 flex justify-between items-center">
+            <span class="font-bold text-lg">I:Bro</span>
+            <button id="closeMobileMenu" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <nav class="p-5 space-y-1">
+            <a href="#" class="block py-3 px-4 rounded-xl text-base font-medium hover:bg-light transition-colors" data-nav="iPhone">iPhone</a>
+            <a href="#" class="block py-3 px-4 rounded-xl text-base font-medium hover:bg-light transition-colors" data-nav="Mac">Mac</a>
+            <a href="#" class="block py-3 px-4 rounded-xl text-base font-medium hover:bg-light transition-colors" data-nav="iPad">iPad</a>
+            <a href="#" class="block py-3 px-4 rounded-xl text-base font-medium hover:bg-light transition-colors" data-nav="Watch">Watch</a>
+            <a href="#" class="block py-3 px-4 rounded-xl text-base font-medium hover:bg-light transition-colors" data-nav="Audio">AirPods</a>
+            <a href="#" class="block py-3 px-4 rounded-xl text-base font-medium hover:bg-light transition-colors" data-nav="Accessory">Аксессуары</a>
+            <hr class="my-4">
+            <a href="#" class="block py-3 px-4 rounded-xl text-base font-medium text-accent hover:bg-red-50 transition-colors">🔥 Sale</a>
+            <a href="#" class="block py-3 px-4 rounded-xl text-base font-medium hover:bg-light transition-colors">Trade-in</a>
+            <a href="#" class="block py-3 px-4 rounded-xl text-base font-medium hover:bg-light transition-colors">Рассрочка</a>
+        </nav>
+    </div>
+
+    <!-- Hero Carousel -->
+    <section class="relative overflow-hidden bg-light" id="heroCarousel">
+        <div class="overflow-hidden" id="heroTrack">
+            <div class="flex transition-transform duration-500" id="heroSlides">
+                <div class="min-w-full flex flex-col md:flex-row items-center justify-between px-8 md:px-20 py-12 md:py-16 bg-gradient-to-br from-gray-50 to-white">
+                    <div class="md:w-1/2 space-y-5 text-center md:text-left mb-8 md:mb-0">
+                        <span class="inline-block px-3 py-1 bg-brand/10 text-brand text-xs font-bold rounded-full">Новинка</span>
+                        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">iPhone 16 Pro</h1>
+                        <p class="text-muted text-lg max-w-md mx-auto md:mx-0">Титановый корпус. Чип A18 Pro. Камера 48 Мп. Кнопка Camera Control.</p>
+                        <div class="flex gap-3 justify-center md:justify-start">
+                            <button data-action="nav" data-cat="iPhone" class="btn-active bg-brand hover:bg-brand/90 text-white px-6 py-2.5 rounded-full text-sm font-medium transition-colors">Купить от 129 990 ₽</button>
+                            <button class="btn-active text-brand hover:underline px-6 py-2.5 text-sm font-medium">Подробнее ></button>
+                        </div>
+                    </div>
+                    <div class="md:w-1/2 flex justify-center"><img src="https://image.qwenlm.ai/public_source/d277a0af-480d-4633-a108-8e5f4eea33a6/150c7f294-0be3-4a47-b19d-416b6150d773.png" alt="iPhone 16 Pro" class="max-h-[350px] object-contain"></div>
+                </div>
+                <div class="min-w-full flex flex-col md:flex-row items-center justify-between px-8 md:px-20 py-12 md:py-16 bg-gradient-to-br from-gray-900 to-black text-white">
+                    <div class="md:w-1/2 space-y-5 text-center md:text-left mb-8 md:mb-0">
+                        <span class="inline-block px-3 py-1 bg-white/10 text-white text-xs font-bold rounded-full">Самый тонкий</span>
+                        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">MacBook Air M3</h1>
+                        <p class="text-gray-400 text-lg max-w-md mx-auto md:mx-0">15-дюймовый дисплей Liquid Retina. До 18 часов автономной работы. Всего 1,51 кг.</p>
+                        <div class="flex gap-3 justify-center md:justify-start">
+                            <button data-action="nav" data-cat="Mac" class="btn-active bg-white text-dark px-6 py-2.5 rounded-full text-sm font-medium transition-colors">Купить от 154 990 ₽</button>
+                            <button class="btn-active text-white hover:underline px-6 py-2.5 text-sm font-medium">Подробнее ></button>
+                        </div>
+                    </div>
+                    <div class="md:w-1/2 flex justify-center"><img src="https://image.qwenlm.ai/public_source/d277a0af-480d-4633-a108-8e5f4eea33a6/10242b93e-a6ac-4c91-b34a-e9c361a15ba3.png" alt="MacBook Air" class="max-h-[350px] object-contain"></div>
+                </div>
+                <div class="min-w-full flex flex-col md:flex-row items-center justify-between px-8 md:px-20 py-12 md:py-16 bg-gradient-to-br from-brand/5 to-white">
+                    <div class="md:w-1/2 space-y-5 text-center md:text-left mb-8 md:mb-0">
+                        <span class="inline-block px-3 py-1 bg-orange-500/10 text-orange-600 text-xs font-bold rounded-full">🔥 Рассрочка 0%</span>
+                        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">Apple Watch Ultra 2</h1>
+                        <p class="text-muted text-lg max-w-md mx-auto md:mx-0">Титановый корпус 49 мм. GPS + Cellular. Яркость до 3000 нит. Глубиномер.</p>
+                        <div class="flex gap-3 justify-center md:justify-start">
+                            <button data-action="nav" data-cat="Watch" class="btn-active bg-brand hover:bg-brand/90 text-white px-6 py-2.5 rounded-full text-sm font-medium transition-colors">Купить от 79 990 ₽</button>
+                            <button class="btn-active text-brand hover:underline px-6 py-2.5 text-sm font-medium">Подробнее ></button>
+                        </div>
+                    </div>
+                    <div class="md:w-1/2 flex justify-center"><img src="https://image.qwenlm.ai/public_source/d277a0af-480d-4633-a108-8e5f4eea33a6/1c8287569-8b17-4c75-bf0c-cffa1fda0691.png" alt="Apple Watch Ultra" class="max-h-[350px] object-contain"></div>
+                </div>
+            </div>
+        </div>
+        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+            <button class="carousel-dot w-2.5 h-2.5 rounded-full bg-brand transition-all" data-index="0"></button>
+            <button class="carousel-dot w-2.5 h-2.5 rounded-full bg-gray-300 transition-all" data-index="1"></button>
+            <button class="carousel-dot w-2.5 h-2.5 rounded-full bg-gray-300 transition-all" data-index="2"></button>
+        </div>
+        <button id="prevSlide" class="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 backdrop-blur rounded-full shadow flex items-center justify-center hover:bg-white transition-colors"><i class="fa-solid fa-chevron-left text-sm"></i></button>
+        <button id="nextSlide" class="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 backdrop-blur rounded-full shadow flex items-center justify-center hover:bg-white transition-colors"><i class="fa-solid fa-chevron-right text-sm"></i></button>
+    </section>
+
+    <!-- Categories Strip -->
+    <section class="py-3 border-b border-gray-100">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-wrap gap-1.5" id="categoryStrip">
+                <button class="cat-btn flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-dark text-white text-xs font-semibold whitespace-nowrap transition-all" data-cat="all"><i class="fa-solid fa-border-all text-[10px]"></i> Все</button>
+            </div>
+            <div class="subcat-wrap mt-2 pt-2 border-t border-gray-100">
+                <button class="subcat-arrow subcat-arrow-left"><i class="fa-solid fa-chevron-left text-[10px]"></i></button>
+                <div class="subcat-scroll" id="subcatStrip"></div>
+                <button class="subcat-arrow subcat-arrow-right"><i class="fa-solid fa-chevron-right text-[10px]"></i></button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content Area -->
+    <main class="flex-1 py-8" id="productsSection">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col lg:flex-row gap-8">
+                
+                <!-- Sidebar Filters -->
+                <aside class="lg:w-72 flex-shrink-0">
+                    <div class="lg:sticky lg:top-20">
+                        <button id="filterToggle" class="w-full lg:hidden bg-light border border-gray-200 rounded-xl py-2.5 text-sm font-medium flex items-center justify-center gap-2 mb-3">
+                            <i class="fa-solid fa-sliders"></i> Фильтры
+                            <i class="fa-solid fa-chevron-down text-[10px]"></i>
+                        </button>
+                        <div id="filtersPanel" class="space-y-5 bg-white rounded-2xl border border-gray-100 p-5">
+                            <div class="flex items-center justify-between">
+                                <h3 class="font-bold text-base">Фильтры</h3>
+                                <button data-action="resetFilters" class="text-xs text-brand hover:underline">Сбросить</button>
+                            </div>
+
+                            <!-- Price Range -->
+                            <div class="filter-section">
+                                <button class="filter-toggle w-full flex items-center justify-between gap-2 text-left" data-target="priceFilterBody">
+                                    <h4 class="font-semibold text-sm">Цена, ₽</h4>
+                                    <i class="fa-solid fa-chevron-down text-[10px] text-muted transition-transform"></i>
+                                </button>
+                                <div id="priceFilterBody" class="filter-body mt-3 space-y-3">
+                                    <div class="flex gap-3">
+                                        <input type="number" id="priceMin" placeholder="от" class="w-full px-3 py-2 bg-light rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-brand">
+                                        <input type="number" id="priceMax" placeholder="до" class="w-full px-3 py-2 bg-light rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-brand">
+                                    </div>
+                                    <input type="range" id="priceRange" min="0" max="500000" value="500000" step="1000" class="w-full">
+                                    <div class="flex justify-between text-xs text-muted">
+                                        <span id="priceRangeLabel">0 — 500 000 ₽</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Category -->
+                            <div class="filter-section">
+                                <button class="filter-toggle w-full flex items-center justify-between gap-2 text-left" data-target="catFilterBody">
+                                    <h4 class="font-semibold text-sm">Категория</h4>
+                                    <i class="fa-solid fa-chevron-down text-[10px] text-muted transition-transform"></i>
+                                </button>
+                                <div id="catFilterBody" class="filter-body mt-3 space-y-2">
+                                    <div class="space-y-2" id="catFilters"></div>
+                                </div>
+                            </div>
+
+                            <!-- Color -->
+                            <div class="filter-section">
+                                <button class="filter-toggle w-full flex items-center justify-between gap-2 text-left" data-target="colorFilterBody">
+                                    <h4 class="font-semibold text-sm">Цвет</h4>
+                                    <i class="fa-solid fa-chevron-down text-[10px] text-muted transition-transform"></i>
+                                </button>
+                                <div id="colorFilterBody" class="filter-body mt-3">
+                                    <div class="flex flex-wrap gap-2" id="colorFilters"></div>
+                                </div>
+                            </div>
+
+                            <!-- Storage -->
+                            <div class="filter-section">
+                                <button class="filter-toggle w-full flex items-center justify-between gap-2 text-left" data-target="storageFilterBody">
+                                    <h4 class="font-semibold text-sm">Память</h4>
+                                    <i class="fa-solid fa-chevron-down text-[10px] text-muted transition-transform"></i>
+                                </button>
+                                <div id="storageFilterBody" class="filter-body mt-3">
+                                    <div class="flex flex-wrap gap-2" id="storageFilters"></div>
+                                </div>
+                            </div>
+
+                            <!-- Has Discount -->
+                            <div class="filter-section">
+                                <button class="filter-toggle w-full flex items-center justify-between gap-2 text-left" data-target="otherFilterBody">
+                                    <h4 class="font-semibold text-sm">Прочее</h4>
+                                    <i class="fa-solid fa-chevron-down text-[10px] text-muted transition-transform"></i>
+                                </button>
+                                <div id="otherFilterBody" class="filter-body mt-3 space-y-2">
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" id="discountFilter" class="accent-brand">
+                                        <span class="text-sm font-medium">Со скидкой</span>
+                                    </label>
+                                    <label class="flex items-center gap-2 cursor-pointer">
+                                        <input type="checkbox" id="newFilter" class="accent-brand">
+                                        <span class="text-sm font-medium">Новинки</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <button id="applyFilters" class="btn-active w-full bg-brand hover:bg-brand/90 text-white py-2.5 rounded-xl font-medium text-sm transition-all">Применить</button>
+                        </div>
+                    </div>
+                </aside>
+
+                <!-- Products Grid -->
+                <div class="flex-1">
+                    <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+                        <div>
+                            <h2 class="text-xl font-bold" id="sectionTitle">Все товары</h2>
+                            <p class="text-xs text-muted mt-1">Найдено: <span id="resultCount">0</span> товаров</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <button id="viewGrid" class="w-9 h-9 rounded-lg bg-brand text-white flex items-center justify-center transition-colors"><i class="fa-solid fa-grid text-sm"></i></button>
+                            <button id="viewList" class="w-9 h-9 rounded-lg bg-light text-muted flex items-center justify-center hover:bg-gray-200 transition-colors"><i class="fa-solid fa-list text-sm"></i></button>
+                            <select id="sortSelect" class="bg-light border-0 rounded-xl px-3 py-2 text-sm font-medium text-dark outline-none cursor-pointer focus:ring-2 focus:ring-brand/50">
+                                <option value="popular">По популярности</option>
+                                <option value="price-asc">Сначала дешёвые</option>
+                                <option value="price-desc">Сначала дорогие</option>
+                                <option value="discount">По скидке</option>
+                                <option value="new">Новинки</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Active Filters Display -->
+                    <div id="activeFiltersDisplay" class="flex flex-wrap gap-2 mb-4 hidden"></div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5" id="productGrid"></div>
+                    <div id="noResults" class="hidden text-center py-20">
+                        <i class="fa-regular fa-face-frown text-6xl text-gray-200 mb-4"></i>
+                        <h3 class="text-xl font-semibold text-muted">Ничего не найдено</h3>
+                        <p class="text-gray-400 mt-2 text-sm">Попробуйте изменить параметры фильтров</p>
+                        <button data-action="resetFilters" class="mt-4 text-brand font-medium hover:underline text-sm">Сбросить фильтры</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Promo Banners -->
+    <section class="py-10 bg-light reveal">
+        <div class="container mx-auto px-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white rounded-3xl p-8 flex flex-col md:flex-row items-center gap-6 cursor-pointer card-hover">
+                <div class="flex-1 text-center md:text-left">
+                    <span class="text-xs font-bold text-accent uppercase tracking-wider">Trade-in</span>
+                    <h3 class="text-xl font-bold mt-2 mb-3">Обменяй старое на новое</h3>
+                    <p class="text-muted text-sm mb-4">Скидка до 60 000 ₽ при покупке нового iPhone.</p>
+                    <span class="text-brand text-sm font-medium hover:underline">Рассчитать стоимость ></span>
+                </div>
+                <div class="text-7xl">📱</div>
+            </div>
+            <div class="bg-white rounded-3xl p-8 flex flex-col md:flex-row items-center gap-6 cursor-pointer card-hover">
+                <div class="flex-1 text-center md:text-left">
+                    <span class="text-xs font-bold text-brand uppercase tracking-wider">Рассрочка 0%</span>
+                    <h3 class="text-xl font-bold mt-2 mb-3">Плати частями</h3>
+                    <p class="text-muted text-sm mb-4">Рассрочка на 12 месяцев без переплат.</p>
+                    <span class="text-brand text-sm font-medium hover:underline">Подробнее ></span>
+                </div>
+                <div class="text-7xl">💳</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Advantages -->
+    <section class="py-14 bg-white reveal">
+        <div class="container mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+            <div>
+                <div class="w-14 h-14 bg-brand/10 text-brand rounded-2xl flex items-center justify-center text-xl mx-auto mb-4"><i class="fa-solid fa-truck-fast"></i></div>
+                <h3 class="font-bold text-sm mb-1">Доставка за 1 час</h3>
+                <p class="text-xs text-muted">По Москве до 20:00</p>
+            </div>
+            <div>
+                <div class="w-14 h-14 bg-green-100 text-success rounded-2xl flex items-center justify-center text-xl mx-auto mb-4"><i class="fa-solid fa-shield-check"></i></div>
+                <h3 class="font-bold text-sm mb-1">Гарантия Apple</h3>
+                <p class="text-xs text-muted">1 год на все устройства</p>
+            </div>
+            <div>
+                <div class="w-14 h-14 bg-orange-100 text-warning rounded-2xl flex items-center justify-center text-xl mx-auto mb-4"><i class="fa-solid fa-percent"></i></div>
+                <h3 class="font-bold text-sm mb-1">Рассрочка 0%</h3>
+                <p class="text-xs text-muted">12 месяцев без переплат</p>
+            </div>
+            <div>
+                <div class="w-14 h-14 bg-purple-100 text-purple-600 rounded-2xl flex items-center justify-center text-xl mx-auto mb-4"><i class="fa-solid fa-rotate"></i></div>
+                <h3 class="font-bold text-sm mb-1">Возврат 14 дней</h3>
+                <p class="text-xs text-muted">Если не подошёл</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-light text-xs text-muted border-t border-gray-200 reveal">
+        <div class="container mx-auto px-4 py-10">
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-8 mb-8">
+                <div>
+                    <h4 class="font-bold text-dark mb-3 text-sm">iPhone</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="hover:text-dark transition-colors">iPhone 16 Pro</a></li>
+                        <li><a href="#" class="hover:text-dark transition-colors">iPhone 16</a></li>
+                        <li><a href="#" class="hover:text-dark transition-colors">iPhone 15</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-dark mb-3 text-sm">Mac</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="hover:text-dark transition-colors">MacBook Air</a></li>
+                        <li><a href="#" class="hover:text-dark transition-colors">MacBook Pro</a></li>
+                        <li><a href="#" class="hover:text-dark transition-colors">iMac</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-dark mb-3 text-sm">iPad & Watch</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="hover:text-dark transition-colors">iPad Pro</a></li>
+                        <li><a href="#" class="hover:text-dark transition-colors">iPad Air</a></li>
+                        <li><a href="#" class="hover:text-dark transition-colors">Apple Watch</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-dark mb-3 text-sm">Сервис</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="hover:text-dark transition-colors">Trade-in</a></li>
+                        <li><a href="#" class="hover:text-dark transition-colors">Рассрочка</a></li>
+                        <li><a href="#" class="hover:text-dark transition-colors">Доставка</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="font-bold text-dark mb-3 text-sm">Контакты</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="hover:text-dark transition-colors">8 (800) 100-00-00</a></li>
+                        <li><a href="#" class="hover:text-dark transition-colors">info@ibro.ru</a></li>
+                    </ul>
+                    <div class="flex gap-3 mt-4">
+                        <a href="#" class="w-8 h-8 bg-white rounded-full flex items-center justify-center hover:bg-brand hover:text-white transition-colors text-dark"><i class="fa-brands fa-telegram"></i></a>
+                        <a href="#" class="w-8 h-8 bg-white rounded-full flex items-center justify-center hover:bg-brand hover:text-white transition-colors text-dark"><i class="fa-brands fa-vk"></i></a>
+                        <a href="#" class="w-8 h-8 bg-white rounded-full flex items-center justify-center hover:bg-brand hover:text-white transition-colors text-dark"><i class="fa-brands fa-youtube"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-300 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                <p>© 2026 I:Bro. Авторизованный реселлер Apple.</p>
+                <div class="flex gap-4">
+                    <a href="#" class="hover:text-dark transition-colors">Политика конфиденциальности</a>
+                    <a href="#" class="hover:text-dark transition-colors">Условия использования</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Cart Drawer -->
+    <div id="cartOverlay" class="overlay fixed inset-0 bg-black/40 z-50"></div>
+    <div id="cartDrawer" class="drawer fixed top-0 right-0 h-full w-full sm:w-[420px] bg-white z-50 shadow-2xl flex flex-col">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-white">
+            <h2 class="text-lg font-bold">Корзина <span id="cartCount" class="text-muted font-normal text-sm">(0)</span></h2>
+            <button id="closeCartBtn" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"><i class="fa-solid fa-xmark text-sm"></i></button>
+        </div>
+        <div id="cartItems" class="flex-1 overflow-y-auto p-6 space-y-5"></div>
+        <div id="cartEmpty" class="hidden flex-1 flex flex-col items-center justify-center text-center p-6">
+            <div class="w-16 h-16 bg-light rounded-full flex items-center justify-center text-gray-300 text-2xl mb-4"><i class="fa-solid fa-bag-shopping"></i></div>
+            <p class="text-lg font-medium mb-2">Корзина пуста</p>
+            <p class="text-sm text-muted mb-6">Добавьте товары</p>
+            <button data-action="closeCart" class="text-brand font-medium hover:underline text-sm">Продолжить покупки</button>
+        </div>
+        <div class="p-5 border-t border-gray-100 bg-gray-50">
+            <div class="flex justify-between mb-1 text-sm text-muted"><span>Товары</span><span id="cartSubtotal">0 ₽</span></div>
+            <div class="flex justify-between mb-1 text-sm text-muted"><span>Доставка</span><span class="text-success">Бесплатно</span></div>
+            <div class="flex justify-between mb-5 text-lg font-bold pt-2 border-t border-gray-200"><span>Итого</span><span id="cartTotal">0 ₽</span></div>
+            <button id="checkoutBtn" class="btn-active w-full bg-brand hover:bg-brand/90 text-white py-3.5 rounded-xl font-medium shadow-lg shadow-brand/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed">Оформить заказ</button>
+        </div>
+    </div>
+
+    <!-- Product Detail Modal -->
+    <div id="productModalOverlay" class="overlay fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-3 backdrop-blur-sm">
+        <div id="productModal" class="modal bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto relative">
+            <button id="closeProductModal" class="absolute top-4 right-4 z-10 w-9 h-9 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            <div class="grid grid-cols-1 md:grid-cols-2">
+                <div class="bg-light p-8 flex items-center justify-center min-h-[280px] rounded-t-2xl md:rounded-l-2xl md:rounded-tr-none">
+                    <img id="modalImg" src="" alt="" onerror="imgError(this)" class="max-h-[350px] object-contain">
+                </div>
+                <div class="p-6 md:p-8 flex flex-col">
+                    <span id="modalCategory" class="text-xs font-bold text-muted uppercase tracking-wider mb-2"></span>
+                    <h2 id="modalTitle" class="text-2xl md:text-3xl font-bold mb-1"></h2>
+                    <div class="flex items-center gap-2 mb-4">
+                        <div class="flex text-warning text-sm"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i></div>
+                        <span class="text-xs text-muted">4.8 (124 отзыва)</span>
+                    </div>
+                    <p id="modalPrice" class="text-2xl font-bold text-brand mb-1"></p>
+                    <p id="modalOldPrice" class="text-sm text-muted line-through mb-4 hidden"></p>
+                    <p id="modalDesc" class="text-muted text-sm mb-6 leading-relaxed"></p>
+                    <div class="mb-6">
+                        <h4 class="font-bold text-sm mb-3">Характеристики</h4>
+                        <div id="modalSpecs" class="grid grid-cols-2 gap-2 text-xs"></div>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium mb-2">Цвет: <span id="selectedColorName" class="text-muted font-normal"></span></label>
+                        <div class="flex gap-2" id="modalColors"></div>
+                    </div>
+                    <div class="mt-auto space-y-3">
+                        <button id="modalAddToCart" class="btn-active w-full bg-brand hover:bg-brand/90 text-white py-3.5 rounded-xl font-medium shadow-lg shadow-brand/20 transition-all">Добавить в корзину</button>
+                        <button data-action="buyNow" class="btn-active w-full bg-light hover:bg-gray-200 text-dark py-3.5 rounded-xl font-medium transition-all">Купить в 1 клик</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Checkout Modal -->
+    <div id="checkoutOverlay" class="overlay fixed inset-0 bg-black/50 z-[70] flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="modal bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div class="p-5 border-b border-gray-100 flex justify-between items-center">
+                <h3 class="text-lg font-bold">Оформление заказа</h3>
+                <button id="closeCheckoutBtn" class="text-muted hover:text-dark"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="checkoutForm" class="p-5 space-y-3.5">
+                <div><label class="block text-xs font-medium text-muted mb-1">ФИО *</label><input type="text" required class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none" placeholder="Иванов Иван Иванович"></div>
+                <div><label class="block text-xs font-medium text-muted mb-1">Телефон *</label><input type="tel" required class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none" placeholder="+7 (999) 000-00-00"></div>
+                <div><label class="block text-xs font-medium text-muted mb-1">Email *</label><input type="email" required class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none" placeholder="ivan@example.com"></div>
+                <div><label class="block text-xs font-medium text-muted mb-1">Город *</label><select required class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none bg-white"><option>Москва</option><option>Санкт-Петербург</option><option>Казань</option><option>Новосибирск</option></select></div>
+                <div><label class="block text-xs font-medium text-muted mb-1">Адрес *</label><input type="text" required class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none" placeholder="ул. Пушкина, д. 10"></div>
+                <div><label class="block text-xs font-medium text-muted mb-1">Оплата</label><div class="grid grid-cols-3 gap-2"><label class="flex items-center gap-2 p-2.5 border border-brand rounded-xl cursor-pointer bg-brand/5"><input type="radio" name="payment" value="card" checked class="accent-brand"><span class="text-xs">Картой</span></label><label class="flex items-center gap-2 p-2.5 border border-gray-200 rounded-xl cursor-pointer hover:border-brand"><input type="radio" name="payment" value="installment" class="accent-brand"><span class="text-xs">Рассрочка</span></label><label class="flex items-center gap-2 p-2.5 border border-gray-200 rounded-xl cursor-pointer hover:border-brand"><input type="radio" name="payment" value="cash" class="accent-brand"><span class="text-xs">При получении</span></label></div></div>
+                <div><label class="block text-xs font-medium text-muted mb-1">Комментарий</label><textarea class="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none resize-none" rows="2" placeholder="Пожелания..."></textarea></div>
+                <div class="pt-1"><button type="submit" class="btn-active w-full bg-brand hover:bg-brand/90 text-white py-3.5 rounded-xl font-bold shadow-lg shadow-brand/20 transition-all">Подтвердить · <span id="checkoutTotal">0 ₽</span></button></div>
+                <p class="text-[10px] text-muted text-center">Нажимая кнопку, вы соглашаетесь с условиями оферты</p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast fixed top-4 right-4 bg-white border border-gray-200 text-dark px-4 py-3 rounded-xl shadow-2xl z-[80] flex items-center gap-3 max-w-xs">
+        <div class="w-7 h-7 bg-green-100 text-success rounded-full flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-check text-xs"></i></div>
+        <div><h4 class="font-bold text-xs">Добавлено</h4><p class="text-muted text-xs" id="toastMessage"></p></div>
+    </div>
+
+    <script src="products-data.js"></script>
+    <script>
+        let products = [];
+        let loading = true;
+        const CAT_ICONS = { iPhone:'fa-mobile-screen', Mac:'fa-laptop', iPad:'fa-tablet-screen-button', Watch:'fa-clock', Audio:'fa-headphones', Accessory:'fa-plug', Gaming:'fa-gamepad', Home:'fa-house', Photo:'fa-camera', Samsung:'fa-mobile-button', Xiaomi:'fa-tablet', Google:'fa-microchip', Huawei:'fa-sim-card', Other:'fa-border-all' };
+        const CAT_TITLES = { iPhone:'iPhone', Mac:'Mac', iPad:'iPad', Watch:'Watch', Audio:'Audio', Accessory:'Аксессуары', Gaming:'Игры', Home:'Для дома', Photo:'Фото', Samsung:'Samsung', Xiaomi:'Xiaomi', Google:'Google', Huawei:'Huawei', Other:'Прочее' };
+
+        let cart = JSON.parse(localStorage.getItem('ibro_cart')) || [];
+        let favCount = parseInt(localStorage.getItem('ibro_fav')) || 0;
+        let currentModalProduct = null;
+
+        const $ = id => document.getElementById(id);
+        const fmt = n => n.toLocaleString('ru-RU') + ' ₽';
+        const productGrid = $('productGrid');
+        const FALLBACK_IMG = 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect fill="%23f5f5f7" width="200" height="200"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23aaa" font-size="14">Нет фото</text></svg>';
+
+        function saveState() {
+            localStorage.setItem('ibro_cart', JSON.stringify(cart));
+            localStorage.setItem('ibro_fav', String(favCount));
+        }
+
+        function imgError(img) {
+            if (!img.dataset.fallback) { img.dataset.fallback = '1'; img.src = FALLBACK_IMG; }
+        }
+
+        function extractModel(name) {
+            let m = name;
+            const brands = ['Apple ', 'Samsung ', 'Xiaomi ', 'Google ', 'Huawei ', 'Sony ', 'Garmin '];
+            for (const b of brands) {
+                if (m.startsWith(b)) { m = m.substring(b.length); break; }
+            }
+            m = m.replace(/\s+\d+[\/_]\d+\s*(?:[ГГgG][БBbб]|[TТtT][BbБб])\s*/i, ' ');
+            m = m.replace(/\s+\d+\s*(?:[ГГgG][БBbб]|[TТtT][BbБб])\s*/i, ' ');
+            m = m.replace(/\s*SSD\s+(\d+\s*)?(?:[ГГgG][БBbб])\s*.*$/i, '');
+            m = m.replace(/\s*\([A-Z0-9]+\)$/, '');
+            m = m.replace(/\s*_[A-Z0-9]+\s*$/, '');
+            m = m.replace(/^(Смарт-часы\s+)?(Apple\s+)?Watch\s+/i, '');
+            // Remove dimensions like 42mm, 46mm, 13-inch
+            m = m.replace(/\s+\d+[\s-]*(?:mm|inch|дюйм)\s*/i, ' ');
+            // Remove trailing color-like words (they come after storage)
+            const colorStop = ['desert titanium', 'natural titanium', 'white titanium', 'black titanium', 'blue titanium',
+                'space black', 'space gray', 'rose gold', 'sky blue', 'jet black', 'light gold', 'light blue',
+                'silver shadow', 'cobalt violet', 'cosmic orange', 'deep blue', 'mist blue',
+                'titanium black', 'titanium silver', 'titanium gray', 'titanium blue',
+                'midnight', 'starlight', 'graphite', 'titanium', 'aluminum', 'aluminium',
+                'silver', 'gold', 'pink', 'blue', 'green', 'purple', 'black', 'white',
+                'red', 'orange', 'yellow', 'gray', 'navy', 'teal', 'mint', 'cream', 'lilac', 'lavender'];
+            const lower = m.toLowerCase();
+            for (const c of colorStop) {
+                const idx = lower.lastIndexOf(c);
+                if (idx > m.length * 0.3) {
+                    m = m.substring(0, idx).trim();
+                    break;
+                }
+            }
+            return m.trim().replace(/\s+/g, ' ');
+        }
+
+        function getProductsWithColor(colorName) {
+            return products.filter(p => p.colors.some(c => c.n === colorName));
+        }
+
+        function getFilteredProducts() {
+            let items = [...products];
+            const search = $('searchInput').value.toLowerCase();
+            
+            // Category from strip
+            const activeCatBtn = document.querySelector('.cat-btn.bg-dark');
+            const stripCat = activeCatBtn ? activeCatBtn.dataset.cat : document.querySelector('.cat-btn')?.dataset.cat || '';
+            
+            // Search
+            if(search) items = items.filter(p => p.name.toLowerCase().includes(search));
+            
+            // Strip category
+            if(stripCat !== 'all') items = items.filter(p => p.cat === stripCat);
+            
+            // Sidebar categories: unchecked = show all, checked = narrow down
+            const allCatCheckboxes = [...document.querySelectorAll('.cat-checkbox')];
+            const checkedCats = allCatCheckboxes.filter(c => c.checked).map(c => c.value);
+            if (checkedCats.length > 0 && checkedCats.length < allCatCheckboxes.length) items = items.filter(p => checkedCats.includes(p.cat));
+            
+            // Subcategory
+            if (selectedSubcat) items = items.filter(p => extractModel(p.name) === selectedSubcat);
+
+            // Color
+            const activeColors = [...document.querySelectorAll('.color-swatch.active')].map(s => s.dataset.colorname);
+            if (activeColors.length > 0) items = items.filter(p => p.colors.some(c => activeColors.includes(c.n)));
+            
+            // Price
+            const pMin = parseInt($('priceMin').value) || 0;
+            const pMax = parseInt($('priceMax').value) || priceMaxVal;
+            items = items.filter(p => p.price >= pMin && p.price <= pMax);
+            
+            // Storage
+            const activeStorage = [...document.querySelectorAll('.storage-chip.active')].map(c => parseInt(c.dataset.storage));
+            if(activeStorage.length > 0) items = items.filter(p => activeStorage.includes(p.storage));
+            
+
+            
+            // Discount
+            if($('discountFilter').checked) items = items.filter(p => p.oldPrice);
+            
+            // New
+            if($('newFilter').checked) items = items.filter(p => p.badge === 'Новинка');
+            
+            // Sort
+            const sort = $('sortSelect').value;
+            if(sort === 'price-asc') items.sort((a,b) => a.price - b.price);
+            else if(sort === 'price-desc') items.sort((a,b) => b.price - a.price);
+            else if(sort === 'discount') items.sort((a,b) => (b.oldPrice ? 1 : 0) - (a.oldPrice ? 1 : 0) || (b.oldPrice ? (b.oldPrice - b.price) : 0) - (a.oldPrice ? (a.oldPrice - a.price) : 0));
+            else if(sort === 'new') items.sort((a,b) => (b.badge === 'Новинка' ? 1 : 0) - (a.badge === 'Новинка' ? 1 : 0) || b.id - a.id);
+            
+            return items;
+        }
+
+        function render() {
+            if (loading) {
+                productGrid.innerHTML = '<div class="col-span-full text-center py-20"><div class="w-10 h-10 border-2 border-brand border-t-transparent rounded-full animate-spin mx-auto mb-4"></div><p class="text-muted text-sm">Загрузка товаров...</p></div>';
+                $('resultCount').textContent = '...';
+                return;
+            }
+            const items = getFilteredProducts();
+            productGrid.innerHTML = '';
+            $('resultCount').textContent = items.length;
+            
+            if(items.length === 0) { $('noResults').classList.remove('hidden'); return; }
+            else $('noResults').classList.add('hidden');
+
+            items.forEach((p, i) => {
+                const card = document.createElement('div');
+                card.className = 'card-hover bg-white rounded-2xl border border-gray-100 overflow-hidden cursor-pointer group fade-up';
+                card.style.animationDelay = (i * 0.04) + 's';
+                const discount = p.oldPrice ? Math.round((1 - p.price/p.oldPrice)*100) : null;
+                
+                card.innerHTML = `
+                    <div class="relative bg-light aspect-square flex items-center justify-center p-4 overflow-hidden">
+                        ${p.badge ? `<span class="absolute top-3 left-3 text-[10px] font-bold px-2 py-1 rounded-md text-white ${p.badge === 'Новинка' ? 'bg-brand' : p.badge === 'Хит' ? 'bg-warning' : 'bg-accent'}">${p.badge}</span>` : ''}
+                        <button data-fav="${p.id}" class="fav-btn absolute top-3 right-3 w-8 h-8 bg-white/80 backdrop-blur rounded-full flex items-center justify-center text-gray-400 hover:text-accent transition-colors z-10"><i class="fa-regular fa-heart text-sm"></i></button>
+                        <img src="${p.image}" alt="${p.name}" onerror="imgError(this)" class="h-3/4 object-contain group-hover:scale-105 transition-transform duration-500">
+                    </div>
+                    <div class="p-3 md:p-4">
+                        <div class="flex items-center gap-1 mb-1"><span class="text-[10px] text-muted uppercase tracking-wider">${p.cat}</span><span class="text-[10px] text-muted">· ${p.brand}</span></div>
+                        <h3 class="font-semibold text-sm leading-tight mb-2 line-clamp-2 group-hover:text-brand transition-colors min-h-[2.5em]">${p.name}</h3>
+                        <div class="flex items-end gap-2 mb-3">
+                            <span class="font-bold text-base">${fmt(p.price)}</span>
+                            ${p.oldPrice ? `<span class="text-xs text-muted line-through">${fmt(p.oldPrice)}</span>` : ''}
+                        </div>
+                        <button data-addcart="${p.id}" class="btn-active w-full bg-brand/10 text-brand hover:bg-brand hover:text-white font-medium py-2 rounded-xl transition-all text-xs flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-cart-plus text-[10px]"></i> В корзину
+                        </button>
+                    </div>
+                `;
+                card.addEventListener('click', () => openModal(p.id));
+                productGrid.appendChild(card);
+            });
+        }
+
+        function toggleFav(btn) {
+            const icon = btn.querySelector('i');
+            if(icon.classList.contains('fa-regular')) { icon.classList.remove('fa-regular'); icon.classList.add('fa-solid'); btn.classList.add('text-accent'); favCount++; }
+            else { icon.classList.remove('fa-solid'); icon.classList.add('fa-regular'); btn.classList.remove('text-accent'); favCount--; }
+            $('favBadge').textContent = favCount;
+            $('favBadge').style.opacity = favCount > 0 ? '1' : '0';
+            saveState();
+        }
+
+        function showFavToast() {
+            showToast('Товары в избранном: ' + favCount);
+        }
+
+        function addToCart(id) {
+            const p = products.find(x => x.id === id);
+            const color = p.colors[selectedColorIndex] || p.colors[0];
+            const existing = cart.find(x => x.id === id && x.colorName === color.n);
+            if(existing) existing.qty++;
+            else cart.push({...p, qty: 1, colorName: color.n, colorHex: color.c, colorImage: color.image || p.image});
+            updateCartUI();
+            saveState();
+            showToast(p.name);
+            $('cartBadge').classList.remove('badge-pop');
+            void $('cartBadge').offsetWidth;
+            $('cartBadge').classList.add('badge-pop');
+        }
+
+        function removeFromCart(id, colorName) {
+            cart = cart.filter(x => !(x.id === id && x.colorName === colorName));
+            updateCartUI();
+            saveState();
+        }
+        
+        function updateQty(id, delta, colorName) {
+            const item = cart.find(x => x.id === id && x.colorName === colorName);
+            if(item) { item.qty += delta; if(item.qty <= 0) removeFromCart(id, colorName); else { updateCartUI(); saveState(); } }
+        }
+
+        function updateCartUI() {
+            const totalQty = cart.reduce((s, i) => s + i.qty, 0);
+            const totalPrice = cart.reduce((s, i) => s + i.price * i.qty, 0);
+            $('cartBadge').textContent = totalQty;
+            $('cartBadge').style.opacity = totalQty > 0 ? '1' : '0';
+            $('cartCount').textContent = `(${totalQty})`;
+            cartItems.innerHTML = '';
+            if(cart.length === 0) { cartItems.classList.add('hidden'); cartEmpty.classList.remove('hidden'); $('checkoutBtn').disabled = true; }
+            else {
+                cartItems.classList.remove('hidden'); cartEmpty.classList.add('hidden'); $('checkoutBtn').disabled = false;
+                cart.forEach(item => {
+                    const el = document.createElement('div');
+                    el.className = 'flex gap-3';
+                    const cartImg = item.colorImage || item.image;
+                    el.innerHTML = `
+                        <div class="w-20 h-20 bg-light rounded-xl flex items-center justify-center flex-shrink-0 border border-gray-100"><img src="${cartImg}" alt="${item.name}" class="h-14 object-contain" onerror="imgError(this)"></div>
+                        <div class="flex-1 flex flex-col justify-between min-w-0">
+                            <div class="flex justify-between items-start"><h4 class="font-medium text-sm text-dark truncate pr-2">${item.name}</h4><button data-removecart="${item.id}" data-colorname="${item.colorName || ''}" class="text-gray-300 hover:text-accent transition-colors p-0.5"><i class="fa-solid fa-xmark text-xs"></i></button></div>
+                            <div class="flex items-center gap-1.5 mt-0.5">${item.colorName ? `<span class="w-3 h-3 rounded-full border border-gray-200 inline-block" style="background:${item.colorHex}"></span>` : ''}<span class="text-[10px] text-muted">${item.colorName || ''}</span></div>
+                            <div class="flex justify-between items-end mt-1">
+                                <div>${item.oldPrice ? `<span class="text-[10px] text-muted line-through">${fmt(item.oldPrice * item.qty)}</span>` : ''}<span class="font-bold text-sm">${fmt(item.price * item.qty)}</span></div>
+                                <div class="flex items-center bg-gray-100 rounded-lg"><button data-qty="${item.id}" data-delta="-1" data-colorname="${item.colorName || ''}" class="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-dark transition-colors"><i class="fa-solid fa-minus text-[10px]"></i></button><span class="text-xs font-medium w-5 text-center">${item.qty}</span><button data-qty="${item.id}" data-delta="1" data-colorname="${item.colorName || ''}" class="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-dark transition-colors"><i class="fa-solid fa-plus text-[10px]"></i></button></div>
+                            </div>
+                        </div>
+                    `;
+                    cartItems.appendChild(el);
+                });
+            }
+            $('cartSubtotal').textContent = fmt(totalPrice);
+            $('cartTotal').textContent = fmt(totalPrice);
+            $('checkoutTotal').textContent = fmt(totalPrice);
+        }
+
+        let selectedColorIndex = 0;
+
+        function openModal(id) {
+            const p = products.find(x => x.id === id);
+            currentModalProduct = p;
+            selectedColorIndex = 0;
+            const initColor = p.colors[selectedColorIndex];
+            $('modalImg').src = initColor.image || p.image;
+            $('modalTitle').textContent = p.name;
+            $('modalPrice').textContent = fmt(p.price);
+            $('modalDesc').textContent = p.desc;
+            $('modalCategory').textContent = p.cat + ' · ' + p.brand;
+            if(p.oldPrice) { $('modalOldPrice').textContent = fmt(p.oldPrice); $('modalOldPrice').classList.remove('hidden'); } else $('modalOldPrice').classList.add('hidden');
+            
+            const specsEl = $('modalSpecs');
+            specsEl.innerHTML = '';
+            p.specs.forEach(s => { specsEl.innerHTML += `<div class="text-muted">${Object.keys(s)[0]}</div><div class="font-medium">${Object.values(s)[0]}</div>`; });
+            
+            const colorsEl = $('modalColors');
+            colorsEl.innerHTML = '';
+            $('selectedColorName').textContent = initColor.n;
+            p.colors.forEach((c, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'w-8 h-8 rounded-full border-2 border-white shadow-sm ring-1 ring-gray-200 hover:ring-2 hover:ring-brand transition-all';
+                btn.style.backgroundColor = c.c;
+                if (c.c === '#FFFFFF') btn.style.border = '2px solid #ddd';
+                if(idx === 0) btn.classList.add('ring-2', 'ring-brand');
+                btn.addEventListener('click', () => {
+                    colorsEl.querySelectorAll('button').forEach(b => b.classList.remove('ring-2', 'ring-brand'));
+                    btn.classList.add('ring-2', 'ring-brand');
+                    $('selectedColorName').textContent = c.n;
+                    selectedColorIndex = idx;
+                    $('modalImg').src = c.image || p.image;
+                });
+                colorsEl.appendChild(btn);
+            });
+            const newModalBtn = $('modalAddToCart').cloneNode(true);
+            $('modalAddToCart').replaceWith(newModalBtn);
+            newModalBtn.addEventListener('click', () => { addToCart(p.id); closeModal(); });
+            $('productModalOverlay').classList.add('active');
+            $('productModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() { $('productModalOverlay').classList.remove('active'); $('productModal').classList.remove('active'); document.body.style.overflow = ''; }
+        function buyNow() { closeModal(); openCart(); }
+
+        function openCart() { cartDrawer.classList.add('open'); cartOverlay.classList.add('active'); document.body.style.overflow = 'hidden'; }
+        function closeCart() { cartDrawer.classList.remove('open'); cartOverlay.classList.remove('active'); document.body.style.overflow = ''; }
+        function showToast(msg) { $('toastMessage').textContent = msg; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2500); }
+
+        function filterByCat(cat) {
+            document.querySelectorAll('.cat-btn').forEach(b => { b.classList.remove('bg-dark', 'text-white'); b.classList.add('bg-light', 'text-muted'); });
+            const activeBtn = document.querySelector(`.cat-btn[data-cat="${cat}"]`);
+            if(activeBtn) { activeBtn.classList.remove('bg-light', 'text-muted'); activeBtn.classList.add('bg-dark', 'text-white'); }
+            document.querySelectorAll('.cat-checkbox').forEach(cb => { cb.checked = cb.value === cat; });
+            $('sectionTitle').textContent = CAT_TITLES[cat] || 'Все товары';
+            buildSubcats(cat);
+            render();
+            $('productsSection').scrollIntoView({behavior:'smooth'});
+        }
+
+        function resetAll() {
+            // Go back to first category
+            const firstBtn = document.querySelector('.cat-btn');
+            if (firstBtn) firstBtn.click();
+            $('searchInput').value = '';
+        }
+
+        let priceMaxVal = 500000;
+
+        function resetFilters() {
+            document.querySelectorAll('.color-swatch').forEach(c => c.classList.remove('active'));
+            $('priceMin').value = '';
+            $('priceMax').value = '';
+            $('priceRange').value = priceMaxVal;
+            $('priceRangeLabel').textContent = `0 — ${priceMaxVal.toLocaleString('ru-RU')} ₽`;
+            document.querySelectorAll('.storage-chip').forEach(c => c.classList.remove('active'));
+            $('discountFilter').checked = false;
+            $('newFilter').checked = false;
+            // Keep current category active, just reset sub-filters
+            render();
+        }
+
+        // ===== Event Delegation =====
+        document.addEventListener('click', e => {
+            const target = e.target.closest('[data-action], [data-nav], [data-fav], [data-addcart], [data-removecart], [data-qty], .cat-btn');
+            if (!target) return;
+
+            // Filters reset
+            if (target.dataset.action === 'resetFilters') { resetFilters(); return; }
+            if (target.dataset.action === 'closeCart') { closeCart(); return; }
+            if (target.dataset.action === 'buyNow') { buyNow(); return; }
+            if (target.dataset.action === 'favToast') { showFavToast(); return; }
+            if (target.dataset.action === 'reset') { resetAll(); return; }
+            if (target.dataset.action === 'nav' && target.dataset.cat) { filterByCat(target.dataset.cat); return; }
+
+            // Navigation
+            if (target.dataset.nav) { filterByCat(target.dataset.nav); const mm = $('mobileMenu'); if (mm) { mm.style.transform = 'translateX(-100%)'; $('mobileMenuOverlay').classList.remove('active'); document.body.style.overflow = ''; } return; }
+
+            // Favorite toggle
+            if (target.dataset.fav) { e.stopPropagation(); toggleFav(target); return; }
+
+            // Add to cart
+            if (target.dataset.addcart) { e.stopPropagation(); addToCart(parseInt(target.dataset.addcart)); animateAddToCart(target); return; }
+
+            // Remove from cart
+            if (target.dataset.removecart) {
+                removeFromCart(parseInt(target.dataset.removecart), target.dataset.colorname || '');
+                return;
+            }
+
+            // Cart quantity
+            if (target.dataset.qty) {
+                const colorName = target.dataset.colorname || '';
+                updateQty(parseInt(target.dataset.qty), parseInt(target.dataset.delta), colorName);
+                return;
+            }
+
+            // Category strip
+            if (target.classList.contains('cat-btn')) {
+                document.querySelectorAll('.cat-btn').forEach(b => { b.classList.remove('bg-dark', 'text-white'); b.classList.add('bg-light', 'text-muted'); });
+                target.classList.remove('bg-light', 'text-muted');
+                target.classList.add('bg-dark', 'text-white');
+                const cat = target.dataset.cat;
+                // Sync sidebar checkboxes
+                document.querySelectorAll('.cat-checkbox').forEach(cb => { cb.checked = cb.value === cat; });
+                $('sectionTitle').textContent = CAT_TITLES[cat] || 'Все товары';
+                buildSubcats(cat);
+                render();
+                const mm = $('mobileMenu'); if (mm) { mm.style.transform = 'translateX(-100%)'; $('mobileMenuOverlay').classList.remove('active'); document.body.style.overflow = ''; }
+                return;
+            }
+        });
+
+        // Sidebar category checkboxes handled in initProducts()
+
+        // Collapsible filter sections
+        document.querySelectorAll('.filter-toggle').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const target = $(btn.dataset.target);
+                if (!target) return;
+                btn.classList.toggle('active');
+                target.classList.toggle('collapsed');
+            });
+        });
+
+        // Storage chips
+        document.querySelectorAll('.storage-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                chip.classList.toggle('active');
+                render();
+            });
+        });
+
+        // Price range
+        $('priceRange').addEventListener('input', (e) => {
+            const val = e.target.value;
+            $('priceMax').value = val;
+            $('priceRangeLabel').textContent = `0 — ${parseInt(val).toLocaleString('ru-RU')} ₽`;
+            render();
+        });
+        $('priceMin').addEventListener('input', render);
+        $('priceMax').addEventListener('input', (e) => {
+            const val = e.target.value || priceMaxVal;
+            $('priceRange').value = val;
+            $('priceRangeLabel').textContent = `0 — ${parseInt(val).toLocaleString('ru-RU')} ₽`;
+            render();
+        });
+
+        // Discount & New filters
+        $('discountFilter').addEventListener('change', render);
+        $('newFilter').addEventListener('change', render);
+
+        // Search & Sort
+        $('searchInput').addEventListener('input', render);
+        $('sortSelect').addEventListener('change', render);
+
+        // Apply filters button (mobile)
+        $('applyFilters').addEventListener('click', () => {
+            render();
+            if (window.innerWidth < 1024) {
+                $('filtersPanel').classList.add('hidden');
+                const icon = $('filterToggle').querySelector('.fa-chevron-up, .fa-chevron-down');
+                if (icon) icon.className = 'fa-solid fa-chevron-down text-[10px]';
+            }
+        });
+
+        // Mobile filter toggle
+        $('filterToggle').addEventListener('click', () => {
+            const panel = $('filtersPanel');
+            panel.classList.toggle('hidden');
+            const icon = $('filterToggle').querySelector('.fa-chevron-down, .fa-chevron-up');
+            if (icon) icon.className = panel.classList.contains('hidden') ? 'fa-solid fa-chevron-down text-[10px]' : 'fa-solid fa-chevron-up text-[10px]';
+        });
+
+        // Cart & Modal events
+        $('cartBtn').addEventListener('click', openCart);
+        $('closeCartBtn').addEventListener('click', closeCart);
+        cartOverlay.addEventListener('click', closeCart);
+        $('closeProductModal').addEventListener('click', closeModal);
+        $('productModalOverlay').addEventListener('click', e => { if(e.target === $('productModalOverlay')) closeModal(); });
+
+        $('checkoutBtn').addEventListener('click', () => { closeCart(); setTimeout(() => { $('checkoutOverlay').classList.add('active'); $('checkoutOverlay').querySelector('.modal').classList.add('active'); }, 300); });
+        $('closeCheckoutBtn').addEventListener('click', () => { $('checkoutOverlay').classList.remove('active'); $('checkoutOverlay').querySelector('.modal').classList.remove('active'); });
+        $('checkoutForm').addEventListener('submit', e => {
+            e.preventDefault();
+            $('checkoutOverlay').classList.remove('active');
+            $('checkoutOverlay').querySelector('.modal').classList.remove('active');
+            setTimeout(() => { cart = []; updateCartUI(); showToast('Заказ оформлен! Спасибо.'); saveState(); }, 300);
+        });
+
+        // Carousel
+        let currentSlide = 0;
+        const totalSlides = 3;
+        const heroSlides = $('heroSlides');
+        const dots = document.querySelectorAll('.carousel-dot');
+        let autoSlide;
+
+        function updateCarousel() {
+            heroSlides.style.transform = `translateX(-${currentSlide * 100}%)`;
+            dots.forEach((d, i) => {
+                d.classList.toggle('bg-brand', i === currentSlide);
+                d.classList.toggle('bg-gray-300', i !== currentSlide);
+                d.style.width = i === currentSlide ? '20px' : '10px';
+            });
+        }
+
+        function startAutoSlide() { if (autoSlide) clearInterval(autoSlide); autoSlide = setInterval(() => { currentSlide = (currentSlide + 1) % totalSlides; updateCarousel(); }, 6000); }
+        function stopAutoSlide() { if (autoSlide) { clearInterval(autoSlide); autoSlide = null; } }
+
+        $('prevSlide').addEventListener('click', () => { currentSlide = (currentSlide - 1 + totalSlides) % totalSlides; updateCarousel(); startAutoSlide(); });
+        $('nextSlide').addEventListener('click', () => { currentSlide = (currentSlide + 1) % totalSlides; updateCarousel(); startAutoSlide(); });
+        dots.forEach(d => { d.addEventListener('click', () => { currentSlide = parseInt(d.dataset.index); updateCarousel(); startAutoSlide(); }); });
+        
+        $('heroCarousel').addEventListener('mouseenter', stopAutoSlide);
+        $('heroCarousel').addEventListener('mouseleave', startAutoSlide);
+        startAutoSlide();
+
+        // Mobile menu
+        $('mobileMenuBtn').addEventListener('click', () => { $('mobileMenu').style.transform = 'translateX(0)'; $('mobileMenuOverlay').classList.add('active'); document.body.style.overflow = 'hidden'; });
+        $('closeMobileMenu').addEventListener('click', () => { $('mobileMenu').style.transform = 'translateX(-100%)'; $('mobileMenuOverlay').classList.remove('active'); document.body.style.overflow = ''; });
+        $('mobileMenuOverlay').addEventListener('click', () => { $('mobileMenu').style.transform = 'translateX(-100%)'; $('mobileMenuOverlay').classList.remove('active'); document.body.style.overflow = ''; });
+
+        // ===== Animations =====
+        function animateAddToCart(btn) {
+            btn.classList.add('animate-cart');
+            setTimeout(() => btn.classList.remove('animate-cart'), 600);
+        }
+
+        // Scroll reveal with IntersectionObserver
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                    revealObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.15, rootMargin: '0px 0px -40px 0px' });
+
+        document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+        let selectedSubcat = null;
+
+        function getActiveFilterBase() {
+            const activeCatBtn = document.querySelector('.cat-btn.bg-dark');
+            const cat = activeCatBtn ? activeCatBtn.dataset.cat : document.querySelector('.cat-btn')?.dataset.cat || '';
+            let items = cat ? products.filter(p => p.cat === cat) : [...products];
+            if (selectedSubcat) items = items.filter(p => extractModel(p.name) === selectedSubcat);
+            return items;
+        }
+
+        function buildSubcats(cat) {
+            const strip = $('subcatStrip');
+            strip.innerHTML = '';
+            selectedSubcat = null;
+            document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.storage-chip').forEach(s => s.classList.remove('active'));
+            if (!cat) { buildDynamicFilters([]); return; }
+
+            const models = new Map();
+            products.filter(p => p.cat === cat).forEach(p => {
+                const m = extractModel(p.name);
+                if (m && !models.has(m)) {
+                    models.set(m, p.image || '');
+                }
+            });
+            if (models.size <= 1) { buildDynamicFilters(products.filter(p => p.cat === cat)); return; }
+
+            [...models].sort((a, b) => a[0].localeCompare(b[0])).forEach(([model, img]) => {
+                const item = document.createElement('div');
+                item.className = 'subcat-item';
+                item.dataset.subcat = model;
+                item.innerHTML = `
+                    <div class="subcat-img"><img src="${img}" alt="${model}" onerror="imgError(this)" loading="lazy"></div>
+                    <div class="subcat-name">${model}</div>
+                `;
+                item.addEventListener('click', () => {
+                    strip.querySelectorAll('.subcat-item').forEach(s => s.classList.remove('active'));
+                    item.classList.add('active');
+                    selectedSubcat = item.dataset.subcat;
+                    const filtered = getActiveFilterBase();
+                    buildDynamicFilters(filtered);
+                    render();
+                });
+                strip.appendChild(item);
+            });
+
+            buildDynamicFilters(products.filter(p => p.cat === cat));
+        }
+
+        function buildDynamicFilters(items) {
+            const container = $('colorFilters');
+            container.innerHTML = '';
+            const seen = new Set();
+            items.forEach(p => p.colors.forEach(c => {
+                if (!seen.has(c.n)) { seen.add(c.n); }
+            }));
+            [...seen].forEach(name => {
+                const orig = products.flatMap(p => p.colors).find(c => c.n === name);
+                if (!orig) return;
+                const swatch = document.createElement('button');
+                const isWhite = orig.c === '#FFFFFF' || orig.c === '#F2F1EB' || orig.c === '#F5F0E8';
+                swatch.className = `color-swatch ${isWhite ? 'white-swatch' : ''}`;
+                swatch.style.backgroundColor = orig.c;
+                swatch.title = name;
+                swatch.dataset.colorname = name;
+                swatch.addEventListener('click', () => {
+                    swatch.classList.toggle('active');
+                    render();
+                });
+                container.appendChild(swatch);
+            });
+
+            const storageContainer = $('storageFilters');
+            storageContainer.innerHTML = '';
+            const storages = new Set();
+            items.filter(p => p.storage).forEach(p => storages.add(p.storage));
+            if (storages.size > 0) {
+                [...storages].sort((a, b) => a - b).forEach(s => {
+                    const label = s >= 1000 ? (s / 1000) + ' ТБ' : s + ' ГБ';
+                    const chip = document.createElement('button');
+                    chip.className = 'storage-chip filter-chip px-3 py-1.5 rounded-lg border border-gray-200 text-xs font-medium bg-light';
+                    chip.dataset.storage = s;
+                    chip.textContent = label;
+                    chip.addEventListener('click', () => {
+                        chip.classList.toggle('active');
+                        render();
+                    });
+                    storageContainer.appendChild(chip);
+                });
+            }
+        }
+
+        // Drag scroll & arrows for subcat strip
+        function initSubcatScroll() {
+            const scrollEl = $('subcatStrip');
+            if (!scrollEl) return;
+            const leftBtn = scrollEl.parentElement.querySelector('.subcat-arrow-left');
+            const rightBtn = scrollEl.parentElement.querySelector('.subcat-arrow-right');
+
+            leftBtn?.addEventListener('click', () => { scrollEl.scrollBy({ left: -300, behavior: 'smooth' }); });
+            rightBtn?.addEventListener('click', () => { scrollEl.scrollBy({ left: 300, behavior: 'smooth' }); });
+
+            // Show/hide arrows based on scroll position
+            function updateArrows() {
+                if (!leftBtn || !rightBtn) return;
+                const atStart = scrollEl.scrollLeft <= 5;
+                const atEnd = scrollEl.scrollLeft + scrollEl.clientWidth >= scrollEl.scrollWidth - 5;
+                leftBtn.style.opacity = atStart ? '0' : '1';
+                leftBtn.style.pointerEvents = atStart ? 'none' : 'auto';
+                rightBtn.style.opacity = atEnd ? '0' : '1';
+                rightBtn.style.pointerEvents = atEnd ? 'none' : 'auto';
+            }
+
+            scrollEl.addEventListener('scroll', updateArrows);
+            setTimeout(updateArrows, 100);
+            new ResizeObserver(updateArrows).observe(scrollEl);
+        }
+
+        // ===== Init =====
+        function initProducts() {
+            products = window.PRODUCTS_DATA || [];
+            loading = false;
+
+            if (!products.length) {
+                $('productGrid').innerHTML = '<div class="col-span-full text-center py-20"><i class="fa-regular fa-circle-exclamation text-6xl text-gray-200 mb-4"></i><h3 class="text-xl font-semibold text-muted">Нет товаров</h3></div>';
+                return;
+            }
+
+            // Set price range from data
+            const prices = products.map(p => p.price).filter(Boolean);
+            priceMaxVal = Math.max(...prices, 500000);
+            $('priceRange').max = priceMaxVal;
+            $('priceRange').value = priceMaxVal;
+            $('priceRangeLabel').textContent = `0 — ${priceMaxVal.toLocaleString('ru-RU')} ₽`;
+
+            // Build categories from data
+            const catSet = new Set(products.map(p => p.cat));
+            const catOrder = ['iPhone', 'Samsung', 'Xiaomi', 'Mac', 'iPad', 'Watch', 'Audio', 'Gaming', 'Photo', 'Home', 'Google', 'Huawei', 'Accessory', 'Other'];
+            const cats = [...catSet].filter(Boolean).sort((a, b) => {
+                const ia = catOrder.indexOf(a), ib = catOrder.indexOf(b);
+                return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+            });
+            const strip = $('categoryStrip');
+            const catFilterDiv = $('catFilters');
+            strip.innerHTML = '';
+            cats.forEach((c, idx) => {
+                const icon = CAT_ICONS[c] || 'fa-border-all';
+                const title = CAT_TITLES[c] || c;
+                const isActive = idx === 0;
+                const btn = document.createElement('button');
+                btn.className = `cat-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${isActive ? 'bg-dark text-white' : 'bg-light text-muted hover:bg-gray-200'}`;
+                btn.dataset.cat = c;
+                btn.innerHTML = `<i class="fa-solid ${icon} text-xs"></i> ${title}`;
+                strip.appendChild(btn);
+
+                const label = document.createElement('label');
+                label.className = 'flex items-center gap-2 cursor-pointer text-sm';
+                label.innerHTML = `<input type="checkbox" class="cat-checkbox accent-brand" value="${c}"${isActive ? ' checked' : ''}><span>${title}</span>`;
+                catFilterDiv.appendChild(label);
+            });
+
+            // Build subcategories & dynamic filters for first category
+            const firstCat = cats[0] || '';
+            $('sectionTitle').textContent = CAT_TITLES[firstCat] || 'Все товары';
+            buildSubcats(firstCat);
+            initSubcatScroll();
+
+            // Wire up dynamic checkboxes (delegated)
+            $('catFilters').addEventListener('change', (e) => {
+                if (!e.target.classList.contains('cat-checkbox')) return;
+                const checked = [...document.querySelectorAll('.cat-checkbox:checked')];
+                if (checked.length === 0) {
+                    // If none checked, check the first one
+                    const firstCb = document.querySelector('.cat-checkbox');
+                    if (firstCb) { firstCb.checked = true; checked.push(firstCb); }
+                }
+                const activeCat = checked[0]?.value || '';
+                document.querySelectorAll('.cat-btn').forEach(b => {
+                    b.classList.remove('bg-dark', 'text-white');
+                    b.classList.add('bg-light', 'text-muted');
+                    if (b.dataset.cat === activeCat) {
+                        b.classList.remove('bg-light', 'text-muted');
+                        b.classList.add('bg-dark', 'text-white');
+                    }
+                });
+                $('sectionTitle').textContent = CAT_TITLES[activeCat] || activeCat;
+                buildSubcats(activeCat);
+                render();
+            });
+
+            // On mobile, hide filters panel by default
+            if (window.innerWidth < 1024) $('filtersPanel').classList.add('hidden');
+
+            updateCartUI();
+            render();
+        }
+
+        initProducts();
+    </script>
+</body>
+</html>
+
